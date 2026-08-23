@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Semantic design tokens — light (default) & dark (.dark)
+--------------------------------------------------------------------------- */
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-hover: #f1f3f7;
+  --border: #e4e7ee;
+  --content: #111827;
+  --muted: #4b5563;
+  --subtle: #6b7280;
+
+  --brand: #4f46e5;
+  --brand-hover: #4338ca;
+  --brand-soft: #eef2ff;
+  --brand-ring: rgb(99 102 241 / 0.35);
+
+  --success: #059669;
+  --success-soft: #ecfdf5;
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0b0f1a;
+  --surface: #121826;
+  --surface-raised: #1a2234;
+  --surface-hover: #1e2839;
+  --border: #27324a;
+  --content: #e5e9f2;
+  --muted: #a7b0c2;
+  --subtle: #8490a6;
+
+  --brand: #818cf8;
+  --brand-hover: #a5b4fc;
+  --brand-soft: #1e1b4b;
+  --brand-ring: rgb(129 140 248 / 0.4);
+
+  --success: #34d399;
+  --success-soft: #0f2e22;
+  --warning: #fbbf24;
+  --warning-soft: #2a2110;
+  --danger: #f87171;
+  --danger-soft: #33191b;
+
+  --code-bg: #0a0f1c;
+  --code-fg: #e2e8f0;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--content);
+  background: var(--bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+::selection {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+a {
+  transition: color 0.15s ease;
+}
+
+/* Serif — optional, for long-form article titles */
+.font-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+/* Mono — code */
+code,
+pre,
+.font-mono {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono",
+    Consolas, monospace;
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-ring focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white hover:bg-brand-hover hover:shadow-[0_10px_24px_-4px_var(--brand-ring)];
+  }
+  .btn-secondary {
+    @apply btn border border-border bg-surface text-content hover:bg-surface-hover;
+  }
+  .btn-ghost {
+    @apply btn text-muted hover:bg-surface-hover hover:text-content;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white focus-visible:ring-danger;
+  }
+  .btn-danger:hover:not(:disabled) {
+    filter: brightness(0.92);
+  }
+
+  .card {
+    @apply rounded-xl border border-border bg-surface shadow-xs;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:border-brand hover:shadow-lg;
+  }
+
+  .gradient-animate {
+    background-size: 200% 200%;
+    animation: gradient-x 6s ease infinite;
+  }
+
+  .text-gradient {
+    background-image: linear-gradient(100deg, var(--brand) 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+    .text-gradient {
+      background-image: none;
+      color: var(--brand);
+      -webkit-text-fill-color: currentColor;
+    }
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-content placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-content;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .pill {
+    @apply inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
+  .pill-active {
+    @apply bg-brand text-white;
+  }
+  .pill-idle {
+    @apply bg-surface text-muted ring-1 ring-border hover:bg-surface-hover hover:text-content;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply animate-shimmer rounded-md;
+    background-image: linear-gradient(
+      90deg,
+      var(--surface-hover) 25%,
+      var(--surface-raised) 50%,
+      var(--surface-hover) 75%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Lesson article prose */
+  .prose-lesson {
+    @apply text-[15px] leading-7 text-muted;
+  }
+  .prose-lesson h2 {
+    @apply mt-8 mb-3 text-xl font-bold text-content;
+    scroll-margin-top: 5rem;
+  }
+  .prose-lesson h3 {
+    @apply mt-6 mb-2 text-lg font-semibold text-content;
+    scroll-margin-top: 5rem;
+  }
+  .prose-lesson p {
+    @apply my-3;
+  }
+  .prose-lesson ul {
+    @apply my-3 list-disc space-y-1.5 pl-5;
+  }
+  .prose-lesson ol {
+    @apply my-3 list-decimal space-y-1.5 pl-5;
+  }
+  .prose-lesson li {
+    @apply my-1;
+  }
+  .prose-lesson strong {
+    @apply font-semibold text-content;
+  }
+  .prose-lesson code {
+    @apply rounded bg-surface-hover px-1.5 py-0.5 text-[13px] text-brand;
+  }
+  .prose-lesson blockquote {
+    @apply my-4 border-l-4 border-brand/60 bg-brand-soft px-4 py-3 text-muted;
+  }
+  .prose-lesson a {
+    @apply text-brand underline underline-offset-2;
+  }
+  .prose-lesson table {
+    @apply my-4 w-full border-collapse text-sm;
+  }
+  .prose-lesson th {
+    @apply border border-border bg-surface-hover px-3 py-2 text-left font-semibold text-content;
+  }
+  .prose-lesson td {
+    @apply border border-border px-3 py-2 text-muted;
+  }
+}
+
+/* Scrollbar (chat panel, sidebars) */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--subtle);
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
