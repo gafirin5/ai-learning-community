@@ -12,6 +12,7 @@ const NAV = [
   { href: "/courses", label: "Kursus" },
   { href: "/forum", label: "Forum" },
   { href: "/projects", label: "Proyek" },
+  { href: "/leaderboard", label: "Leaderboard" },
 ];
 
 export function SiteHeader() {

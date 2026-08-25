@@ -150,6 +150,8 @@ function loadState(): StoreState {
         threads: { ...(parsed.myReactions?.threads ?? {}) },
         comments: { ...(parsed.myReactions?.comments ?? {}) },
       },
+      xp: parsed.xp ?? 0,
+      certificates: parsed.certificates ?? [],
     };
   } catch {
     return initialState;
@@ -308,8 +310,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const markLessonDone = useCallback((lessonId: number, done: boolean) => {
     setState((s) => {
       const prev = s.progress[lessonId] ?? { lessonId, status: "belum", quizScore: null };
+
+      // Calculate XP change: add 10 XP if marking as done, subtract if reverting (only if it was previously not done)
+      let xpDelta = 0;
+      if (done && prev.status !== "selesai") xpDelta = 10;
+      else if (!done && prev.status === "selesai") xpDelta = -10;
+
       return {
         ...s,
+        xp: Math.max(0, s.xp + xpDelta),
         progress: {
           ...s.progress,
           [lessonId]: { ...prev, status: done ? "selesai" : "belum" },
@@ -321,8 +330,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const saveQuizScore = useCallback((lessonId: number, score: number) => {
     setState((s) => {
       const prev = s.progress[lessonId] ?? { lessonId, status: "selesai", quizScore: null };
+
+      // Calculate XP from quiz score (e.g. 1 point per percent score).
+      // Only award if it's the first time taking it or they improved.
+      const previousScore = prev.quizScore ?? 0;
+      let xpDelta = 0;
+      if (score > previousScore) {
+        xpDelta = score - previousScore;
+      }
+
       return {
         ...s,
+        xp: Math.max(0, s.xp + xpDelta),
         progress: {
           ...s.progress,
           [lessonId]: { ...prev, status: "selesai", quizScore: score },
@@ -347,6 +366,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [state.progress]
   );
+
+  // Hook into lesson completion to issue certificates
+  useEffect(() => {
+    if (!hydrated.current) return;
+
+    let stateChanged = false;
+    const newCertificates = [...state.certificates];
+    let xpAwarded = 0;
+
+    state.courses.forEach((course) => {
+      const percent = courseProgressPercent(course);
+      const hasCert = state.certificates.some(c => c.courseId === course.id);
+
+      if (percent === 100 && !hasCert) {
+        newCertificates.push({
+          courseId: course.id,
+          issuedAt: new Date().toISOString(),
+          certificateId: `CERT-${course.id}-${Date.now()}`
+        });
+        xpAwarded += 50; // Bonus 50 XP for course completion
+        stateChanged = true;
+      }
+    });
+
+    if (stateChanged) {
+      setState(s => ({
+        ...s,
+        certificates: newCertificates,
+        xp: s.xp + xpAwarded
+      }));
+    }
+  }, [state.progress, state.courses, courseProgressPercent, state.certificates, state.xp]);
 
   const getChat = useCallback(
     (lessonId: number) => state.chat[lessonId] ?? [],

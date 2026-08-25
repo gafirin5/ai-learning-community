@@ -173,4 +173,6 @@ export interface StoreState {
   recentlyViewed: number[]; // lesson ids, most recent first
   bookmarks: number[]; // course ids
   activity: { streak: number; lastActiveDate: string };
+  xp: number;
+  certificates: { courseId: number; issuedAt: string; certificateId: string }[];
 }

@@ -53,7 +53,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats row */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+      <div className="mb-8 grid gap-4 sm:grid-cols-4">
         <Reveal className="h-full">
           <div className="card h-full p-6 flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-soft text-2xl" aria-hidden="true">
@@ -67,7 +67,21 @@ export default function DashboardPage() {
             </div>
           </div>
         </Reveal>
-        <Reveal delay={80} className="h-full">
+        <Reveal className="h-full" delay={50}>
+          <div className="card h-full p-6 flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-2xl" aria-hidden="true">
+              ✨
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-content">
+                <CountUp value={state.xp} />
+              </p>
+              <p className="text-sm text-muted">Poin XP</p>
+            </div>
+          </div>
+        </Reveal>
+
+        <Reveal delay={100} className="h-full">
           <div className="card h-full p-6 flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success-soft text-2xl" aria-hidden="true">
               ✅
@@ -80,7 +94,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </Reveal>
-        <Reveal delay={160} className="h-full">
+        <Reveal delay={150} className="h-full">
           <div className="card h-full p-6 flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning-soft text-2xl" aria-hidden="true">
               🎯
@@ -213,6 +227,39 @@ export default function DashboardPage() {
                       <div className="mt-1">
                         <LevelBadge level={course.level} />
                       </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {/* Certificates */}
+          {state.certificates.length > 0 && (
+            <div className="card mt-6 overflow-hidden">
+              <div className="border-b border-border bg-brand-soft/30 px-6 py-4">
+                <h2 className="font-semibold text-content">Sertifikat Kelulusan</h2>
+              </div>
+              <ul className="divide-y divide-border">
+                {state.certificates.map((cert) => {
+                  const course = courses.find((c) => c.id === cert.courseId);
+                  if (!course) return null;
+                  return (
+                    <li key={cert.certificateId} className="p-6 transition-colors hover:bg-surface-hover">
+                      <Link href={`/certificates/${cert.certificateId}`} className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-100 text-xl" aria-hidden="true">
+                          🏆
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-content">{course.title}</p>
+                          <p className="text-xs text-muted mt-1">
+                            Diterbitkan: {new Date(cert.issuedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} &bull; ID: {cert.certificateId}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-brand">
+                          Lihat
+                        </div>
+                      </Link>
                     </li>
                   );
                 })}

@@ -1,15 +1,39 @@
 # AI Learning Community — Frontend (MVP)
 
-Frontend web untuk platform komunitas belajar AI/ML, dibangun dari PRD
-`ai-learning-community-prd.md`. Implementasi **demo frontend** yang berjalan
-tanpa backend — data disimpan di `localStorage` browser, dan AI tutor
-disimulasikan dengan aturan *scoping* lokal.
+Platform AI Learning Community ini adalah sebuah wadah edukasi interaktif yang dirancang untuk membantu pengguna mempelajari Kecerdasan Buatan (AI) dan Machine Learning (ML) melalui pendekatan yang praktis, kolaboratif, dan didukung oleh AI itu sendiri. Visi utama dari platform ini adalah mendemokratisasi akses terhadap pendidikan AI melalui materi terstruktur, ruang diskusi aktif, dan fitur mentoring.
+
+Saat ini, repositori ini berisi **Implementasi Demo Frontend (MVP)** yang berjalan secara mandiri tanpa backend sungguhan — seluruh data (profil, progres kursus, diskusi) disimpan secara lokal di `localStorage` browser, dan AI tutor disimulasikan menggunakan logika pencocokan pola lokal (*scoping*).
+
+## User Flow & Peran (Roles)
+
+Platform ini mendukung tiga peran utama pengguna:
+1. **Learner (Pembelajar):** Dapat mendaftar, mengatur minat belajar saat onboarding, mengambil kursus, membaca materi, mengerjakan kuis, bertanya pada AI Tutor, dan berdiskusi di forum serta memamerkan proyek portofolio mereka.
+2. **Mentor:** Dapat membuat/membangun materi kursus (Course Builder), memberikan ulasan terhadap proyek siswa, serta menjawab pertanyaan-pertanyaan kompleks di forum diskusi.
+3. **Admin:** Mengelola keseluruhan platform, termasuk manajemen pengguna, moderasi forum, dan kurasi kursus.
 
 ## Tech Stack
 
 - **Next.js 14** (App Router, React, TypeScript)
-- **Tailwind CSS** untuk styling (design token + mode gelap/terang)
-- State global berbasis React Context + `localStorage` (tanpa database)
+- **Tailwind CSS** (v3.4.1) untuk styling (design token + mode gelap/terang)
+- **React 18**
+- State global berbasis React Context + `localStorage` (tanpa database persisten)
+- **ESLint** untuk linting
+- **PostCSS** untuk pemrosesan CSS
+
+### Rencana Backend & Database Masa Depan
+Berdasarkan Roadmap Pengembangan, aplikasi ini direncanakan akan bertransformasi dari Frontend MVP menjadi platform produksi penuh dengan menggunakan:
+- **Database:** PostgreSQL melalui Supabase (Fase 1).
+- **Backend/API:** Next.js Route Handlers / Server Actions (Fase 1).
+- **Autentikasi:** NextAuth / Supabase Auth (Fase 1).
+- **Integrasi AI:** Google Gemini API atau model LLM lain (Fase 1).
+
+## Roadmap Pengembangan Sistem
+Untuk mencapai visi tersebut, platform ini akan dikembangkan melalui beberapa fase utama:
+- **Fase 1 (Produksi & Backend):** Migrasi dari `localStorage` ke Supabase/PostgreSQL, penerapan sistem Auth (OAuth), dan integrasi API LLM sungguhan untuk AI Tutor dengan batasan *rate limiting*.
+- **Fase 2 (Interaktivitas):** Integrasi *In-Browser Code Playground* (Monaco + Pyodide) untuk eksekusi kode lokal dan fitur AI Code Reviewer.
+- **Fase 3 (Gamifikasi):** Implementasi poin XP, Leaderboard, Daily Streak, dan sistem sertifikat otomatis.
+- **Fase 4 (Showcase Proyek):** Kemampuan embed aplikasi demo interaktif (seperti Streamlit/Gradio) pada proyek pengguna.
+- **Fase 5 (Skalabilitas Mentor):** Dashboard khusus mentor untuk *Course Builder* dan penjadwalan *Live Mentoring*.
 
 ## Fitur
 
@@ -65,6 +89,8 @@ npm run start
 | Forum: thread, tags, voting, sort, pencarian | ✅ |
 | Komentar bersarang (balasan) | ✅ |
 | Showcase proyek: publikasi, filter, komentar | ✅ |
+| Gamifikasi (XP, Streak, Sertifikat Kelulusan) | ✅ (Mock / Local) |
+| Forum: Dukungan Markdown (LaTeX basic) & Mark as Solution | ✅ |
 
 ## Akun Demo
 
