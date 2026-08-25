@@ -10,9 +10,16 @@ disimulasikan dengan aturan *scoping* lokal.
 - **Next.js 14** (App Router, React, TypeScript)
 - **Tailwind CSS** (v3.4.1) untuk styling (design token + mode gelap/terang)
 - **React 18**
-- State global berbasis React Context + `localStorage` (tanpa database)
+- State global berbasis React Context + `localStorage` (tanpa database persisten)
 - **ESLint** untuk linting
 - **PostCSS** untuk pemrosesan CSS
+
+### Rencana Backend & Database Masa Depan
+Berdasarkan Roadmap Pengembangan, aplikasi ini direncanakan akan bertransformasi dari Frontend MVP menjadi platform produksi penuh dengan menggunakan:
+- **Database:** PostgreSQL melalui Supabase (Fase 1).
+- **Backend/API:** Next.js Route Handlers / Server Actions (Fase 1).
+- **Autentikasi:** NextAuth / Supabase Auth (Fase 1).
+- **Integrasi AI:** Google Gemini API atau model LLM lain (Fase 1).
 
 ## Fitur
 
