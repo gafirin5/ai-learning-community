@@ -8,8 +8,11 @@ disimulasikan dengan aturan *scoping* lokal.
 ## Tech Stack
 
 - **Next.js 14** (App Router, React, TypeScript)
-- **Tailwind CSS** untuk styling (design token + mode gelap/terang)
+- **Tailwind CSS** (v3.4.1) untuk styling (design token + mode gelap/terang)
+- **React 18**
 - State global berbasis React Context + `localStorage` (tanpa database)
+- **ESLint** untuk linting
+- **PostCSS** untuk pemrosesan CSS
 
 ## Fitur
 
