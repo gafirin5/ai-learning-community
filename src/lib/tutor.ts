@@ -26,6 +26,8 @@ export const initialState: StoreState = {
   recentlyViewed: [],
   bookmarks: [],
   activity: { streak: 0, lastActiveDate: "" },
+  xp: 0,
+  certificates: [],
 };
 
 export function todayKey(): string {

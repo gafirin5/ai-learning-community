@@ -36,9 +36,9 @@ export function MarkdownLite({ source }: { source: string }) {
 
   function renderInline(text: string): ReactNode[] {
     const parts: ReactNode[] = [];
-    // Order matters: images (`![]()`) before links (`[]()`), inline code before
+    // Order matters: LaTeX ($math$), images (`![]()`), before links (`[]()`), inline code before
     // both so URLs inside code aren't turned into anchors.
-    const regex = /(`[^`]+`|\*\*[^*]+\*\*|~~[^~]+~~|!\[[^\]]*\]\([^)\s]+\)|\[[^\]]+\]\([^)\s]+\))/g;
+    const regex = /(\$\$[^\$]+\$\$|\$[^\$]+\$|`[^`]+`|\*\*[^*]+\*\*|~~[^~]+~~|!\[[^\]]*\]\([^)\s]+\)|\[[^\]]+\]\([^)\s]+\))/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
     let k = 0;
@@ -47,7 +47,19 @@ export function MarkdownLite({ source }: { source: string }) {
         parts.push(text.slice(lastIndex, match.index));
       }
       const token = match[0];
-      if (token.startsWith("`")) {
+      if (token.startsWith("$$")) {
+        parts.push(
+          <span key={k++} className="font-serif block text-center my-2 text-brand">
+            {token.slice(2, -2)}
+          </span>
+        );
+      } else if (token.startsWith("$")) {
+        parts.push(
+          <span key={k++} className="font-serif italic text-brand">
+            {token.slice(1, -1)}
+          </span>
+        );
+      } else if (token.startsWith("`")) {
         parts.push(
           <code key={k++} className="rounded bg-surface-hover px-1.5 py-0.5 text-[13px] text-brand">
             {token.slice(1, -1)}

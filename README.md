@@ -89,6 +89,8 @@ npm run start
 | Forum: thread, tags, voting, sort, pencarian | ✅ |
 | Komentar bersarang (balasan) | ✅ |
 | Showcase proyek: publikasi, filter, komentar | ✅ |
+| Gamifikasi (XP, Streak, Sertifikat Kelulusan) | ✅ (Mock / Local) |
+| Forum: Dukungan Markdown (LaTeX basic) & Mark as Solution | ✅ |
 
 ## Akun Demo
 
