@@ -15,11 +15,13 @@ const NAV = [
 ];
 
 export function SiteHeader() {
-  const { currentUser, logout, nextLesson } = useStore();
+  const { state, currentUser, logout, nextLesson, markNotificationRead, markAllNotificationsRead } = useStore();
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   const resume = nextLesson();
 
@@ -27,17 +29,20 @@ export function SiteHeader() {
   useEffect(() => {
     setNavOpen(false);
     setMenuOpen(false);
+    setNotifOpen(false);
   }, [pathname]);
 
   // Close user menu on outside click / Escape.
   useEffect(() => {
     function onDown(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setMenuOpen(false);
         setNavOpen(false);
+        setNotifOpen(false);
       }
     }
     document.addEventListener("mousedown", onDown);
@@ -121,6 +126,72 @@ export function SiteHeader() {
             <GlobalSearch />
           </div>
           <ThemeToggle />
+
+          {currentUser && (() => {
+            const myNotifs = state.notifications.filter((n) => n.userId === currentUser.id);
+            const unreadCount = myNotifs.filter((n) => !n.read).length;
+
+            return (
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setNotifOpen((v) => !v)}
+                  className="btn-ghost relative flex h-9 w-9 items-center justify-center rounded-lg !p-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+                  aria-label="Notifikasi"
+                  aria-expanded={notifOpen}
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-danger ring-2 ring-surface" />
+                  )}
+                </button>
+                {notifOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 mt-2 w-80 animate-pop-in overflow-hidden rounded-xl border border-border bg-surface-raised shadow-xl"
+                  >
+                    <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                      <h3 className="font-semibold text-content">Notifikasi</h3>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={() => markAllNotificationsRead()}
+                          className="text-xs font-medium text-brand hover:underline"
+                        >
+                          Tandai semua dibaca
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {myNotifs.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted">Belum ada notifikasi.</div>
+                      ) : (
+                        myNotifs.map((n) => (
+                          <div
+                            key={n.id}
+                            className={`block border-b border-border p-4 transition-colors hover:bg-surface-hover ${n.read ? "opacity-75" : "bg-brand-soft/30"}`}
+                          >
+                            <Link
+                              href={n.link}
+                              onClick={() => {
+                                markNotificationRead(n.id);
+                                setNotifOpen(false);
+                              }}
+                              className="block"
+                            >
+                              <p className="text-sm font-medium text-content">{n.title}</p>
+                              <p className="mt-1 text-xs text-muted">{n.body}</p>
+                            </Link>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
 
           {currentUser ? (
             <div className="relative" ref={menuRef}>

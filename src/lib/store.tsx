@@ -71,6 +71,11 @@ interface StoreContextValue {
   sendChat: (lessonId: number, message: string) => { ok: boolean; error?: string; reply?: ChatMessage };
   getChat: (lessonId: number) => ChatMessage[];
   clearChat: (lessonId: number) => void;
+  // notifications
+  addNotification: (userId: number, title: string, body: string, link: string) => void;
+  markNotificationRead: (id: number) => void;
+  markAllNotificationsRead: () => void;
+
   // forum
   addThread: (data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => number;
   addComment: (threadId: number, body: string, parentId: number | null, images?: string[]) => void;
@@ -407,6 +412,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [state]
   );
 
+
+  const addNotification = useCallback((userId: number, title: string, body: string, link: string) => {
+    setState((s) => ({
+      ...s,
+      notifications: [
+        {
+          id: Date.now() + Math.random(),
+          userId,
+          title,
+          body,
+          link,
+          read: false,
+          createdAt: new Date().toISOString(),
+        },
+        ...s.notifications,
+      ],
+    }));
+  }, []);
+
+  const markNotificationRead = useCallback((id: number) => {
+    setState((s) => ({
+      ...s,
+      notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    }));
+  }, []);
+
+  const markAllNotificationsRead = useCallback(() => {
+    if (!state.currentUserId) return;
+    setState((s) => ({
+      ...s,
+      notifications: s.notifications.map((n) =>
+        n.userId === s.currentUserId ? { ...n, read: true } : n
+      ),
+    }));
+  }, [state.currentUserId]);
+
   const addThread = useCallback(
     (data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => {
       const id = Date.now();
@@ -446,13 +487,45 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         hidden: false,
         images: images ?? [],
       };
-      setState((s) => ({
-        ...s,
-        comments: [...s.comments, comment],
-        threads: s.threads.map((t) =>
-          t.id === threadId ? { ...t, commentIds: [...t.commentIds, comment.id] } : t
-        ),
-      }));
+      setState((s) => {
+        const thread = s.threads.find(t => t.id === threadId);
+
+        // Notify the author of the thread or parent comment if we are replying
+        let targetUserId = null;
+        if (parentId) {
+            const parentComment = s.comments.find(c => c.id === parentId);
+            if (parentComment && parentComment.userId !== state.currentUserId) {
+                targetUserId = parentComment.userId;
+            }
+        } else if (thread && thread.userId !== state.currentUserId) {
+            targetUserId = thread.userId;
+        }
+
+        const currentUser = s.users.find(u => u.id === state.currentUserId);
+
+        const newNotifications = [...s.notifications];
+
+        if (targetUserId && currentUser) {
+             newNotifications.unshift({
+                id: Date.now() + Math.random(),
+                userId: targetUserId,
+                title: parentId ? 'Balasan Baru' : 'Komentar Baru',
+                body: `${currentUser.name} membalas di "${thread?.title || 'Forum'}"`,
+                link: `/forum/${threadId}`,
+                read: false,
+                createdAt: new Date().toISOString(),
+             });
+        }
+
+        return {
+            ...s,
+            comments: [...s.comments, comment],
+            threads: s.threads.map((t) =>
+                t.id === threadId ? { ...t, commentIds: [...t.commentIds, comment.id] } : t
+            ),
+            notifications: newNotifications,
+        };
+      });
     },
     [state.currentUserId]
   );
@@ -1156,6 +1229,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value: StoreContextValue = {
+    addNotification,
+    markNotificationRead,
+    markAllNotificationsRead,
     state,
     currentUser,
     login,
