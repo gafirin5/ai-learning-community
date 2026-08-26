@@ -63,8 +63,20 @@ export default function ProjectsPage() {
       return true;
     });
     const sorted = [...list];
-    if (sort === "populer") sorted.sort((a, b) => b.commentIds.length - a.commentIds.length);
-    else sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    if (sort === "populer") {
+      sorted.sort((a, b) => {
+        // Gabungkan likeCount dan jumlah commentIds
+        const scoreA = (a.likeCount ?? 0) + a.commentIds.length;
+        const scoreB = (b.likeCount ?? 0) + b.commentIds.length;
+        return scoreB - scoreA;
+      });
+    } else {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
+    }
     return sorted;
   }, [state.projects, level, tag, query, sort]);
 

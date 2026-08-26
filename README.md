@@ -113,3 +113,12 @@ Untuk memakai API sungguhan (PostgreSQL + LLM), ganti implementasi di
 `src/lib/store.tsx` dengan pemanggilan `fetch` ke endpoint PRD
 (`/api/chat`, `/api/courses`, `/api/threads`, dst.) dan ganti
 `generateTutorReply` dengan panggilan ke service AI.
+
+## Ide Fitur Tambahan (Future Development)
+
+- **Sistem Notifikasi**: Menampilkan dropdown notifikasi untuk aktivitas seperti balasan di forum, komentar di proyek, atau pencapaian baru (streak).
+- **Gamifikasi & Papan Peringkat**: Menambahkan sistem poin, lencana (badges), dan leaderboard (peringkat) antar pengguna berdasarkan keaktifan belajar dan forum.
+- **Sertifikat Kursus**: Fitur untuk men-generate, melihat, dan mengunduh sertifikat ketika seorang pelajar berhasil menyelesaikan 100% dari sebuah kursus.
+- **Halaman Bookmark / Tersimpan**: Sebuah halaman khusus di mana pengguna bisa melihat semua kursus, thread forum, atau proyek yang mereka "simpan" (save) sebelumnya.
+- **Dashboard Admin/Mentor**: Antarmuka khusus untuk mentor atau admin untuk memantau kemajuan pelajar, mengelola konten (tambah/edit kursus), atau memoderasi forum.
+- **Code Playground Interaktif**: Mengintegrasikan editor kode (seperti Monaco) agar pengguna bisa mencoba menulis kode Python/AI secara langsung di browser.
