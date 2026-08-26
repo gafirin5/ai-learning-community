@@ -98,7 +98,7 @@ export function SiteHeader() {
 
           <nav className="ml-2 hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
             {navLinks}
-            {currentUser?.role === "admin" && (
+            {(currentUser?.role === "admin" || currentUser?.role === "mentor") && (
               <Link
                 href="/admin"
                 className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring ${
@@ -204,7 +204,7 @@ export function SiteHeader() {
               <GlobalSearch />
             </div>
             {navLinks}
-            {currentUser?.role === "admin" && (
+            {(currentUser?.role === "admin" || currentUser?.role === "mentor") && (
               <Link
                 href="/admin"
                 className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-content"

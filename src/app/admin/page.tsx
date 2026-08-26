@@ -10,11 +10,13 @@ import { Courses } from "@/components/admin/courses";
 import { Forum } from "@/components/admin/forum";
 import { Projects } from "@/components/admin/projects";
 import { Reports } from "@/components/admin/reports";
+import { StudentProgress } from "@/components/admin/progress";
 
-type Tab = "overview" | "users" | "courses" | "forum" | "projects" | "reports";
+type Tab = "overview" | "progress" | "users" | "courses" | "forum" | "projects" | "reports";
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: "overview", label: "Ringkasan" },
+  { id: "progress", label: "Progres Murid" },
   { id: "users", label: "Pengguna" },
   { id: "courses", label: "Kursus & Kuis" },
   { id: "forum", label: "Forum" },
@@ -26,12 +28,12 @@ export default function AdminPage() {
   const { currentUser } = useStore();
   const [tab, setTab] = useState<Tab>("overview");
 
-  if (currentUser?.role !== "admin") {
+  if (currentUser?.role !== "admin" && currentUser?.role !== "mentor") {
     return (
       <div className="container-app py-16 text-center">
         <h1 className="text-2xl font-bold text-content">Akses terbatas</h1>
         <p className="mt-2 text-sm text-muted">
-          Panel admin hanya dapat diakses oleh admin.
+          Panel ini hanya dapat diakses oleh admin dan mentor.
         </p>
         <Link href="/" className="btn-primary mt-4">
           Kembali ke beranda
@@ -42,9 +44,9 @@ export default function AdminPage() {
 
   return (
     <div className="container-app py-10">
-      <Breadcrumbs items={[{ label: "Admin" }]} />
+      <Breadcrumbs items={[{ label: "Admin & Mentor" }]} />
       <div className="mb-6">
-        <h1 className="mb-1 text-3xl font-bold text-content">Panel Admin</h1>
+        <h1 className="mb-1 text-3xl font-bold text-content">Panel Admin & Mentor</h1>
         <p className="text-muted">
           Kelola pengguna, konten belajar, forum, proyek, dan laporan.
         </p>
@@ -65,6 +67,7 @@ export default function AdminPage() {
       </div>
 
       {tab === "overview" && <Overview onNavigate={setTab} />}
+      {tab === "progress" && <StudentProgress />}
       {tab === "users" && <Users />}
       {tab === "courses" && <Courses />}
       {tab === "forum" && <Forum />}
