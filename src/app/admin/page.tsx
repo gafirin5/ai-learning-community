@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { Overview } from "@/components/admin/overview";
-import { Users } from "@/components/admin/users";
-import { Courses } from "@/components/admin/courses";
-import { Forum } from "@/components/admin/forum";
-import { Projects } from "@/components/admin/projects";
-import { Reports } from "@/components/admin/reports";
+import { Overview } from "@/features/admin/overview";
+import { Users } from "@/features/admin/users";
+import { Courses } from "@/features/admin/courses";
+import { Forum } from "@/features/admin/forum";
+import { Projects } from "@/features/admin/projects";
+import { Reports } from "@/features/admin/reports";
 
 type Tab = "overview" | "users" | "courses" | "forum" | "projects" | "reports";
 

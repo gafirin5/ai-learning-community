@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useStore } from "@/lib/store";
-import { ProgressBar, ProgressRing } from "@/components/progress";
+import { ProgressBar, ProgressRing } from "@/features/courses/progress";
 import { LevelBadge } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";

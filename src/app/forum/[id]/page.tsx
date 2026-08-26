@@ -5,13 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { categoryById, forumCategories, reportReasons } from "@/lib/data";
-import { VoteControl } from "@/components/vote-control";
+import { VoteControl } from "@/features/forum/vote-control";
 import { Tag } from "@/components/ui";
 import { Avatar } from "@/components/avatar";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { MarkdownLite } from "@/components/markdown-lite";
 import { useToast } from "@/components/toast";
-import { ReactionBar } from "@/components/reactions";
+import { ReactionBar } from "@/features/forum/reactions";
 import { ImageGallery, ImageUpload } from "@/components/image-upload";
 import type { ForumCategoryId, ForumComment } from "@/lib/types";
 

@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { EmptyState, LevelBadge, Tag } from "@/components/ui";
 import { Avatar } from "@/components/avatar";
-import { VoteControl } from "@/components/vote-control";
+import { VoteControl } from "@/features/forum/vote-control";
 import { Reveal } from "@/components/reveal";
 import { useToast } from "@/components/toast";
 import type { Level } from "@/lib/types";
