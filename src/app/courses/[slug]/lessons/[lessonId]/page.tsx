@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { MarkdownLite, extractHeadings } from "@/components/markdown-lite";
-import { QuizPanel } from "@/components/quiz-panel";
-import { TutorChat } from "@/components/tutor-chat";
+import { QuizPanel } from "@/features/courses/quiz-panel";
+import { TutorChat } from "@/features/courses/tutor-chat";
 import { TableOfContents } from "@/components/table-of-contents";
 import { useToast } from "@/components/toast";
 

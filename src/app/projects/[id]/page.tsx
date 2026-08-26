@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 import { LevelBadge, Tag } from "@/components/ui";
 import { Avatar } from "@/components/avatar";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { VoteControl } from "@/components/vote-control";
+import { VoteControl } from "@/features/forum/vote-control";
 import { useToast } from "@/components/toast";
 
 export default function ProjectDetailPage() {

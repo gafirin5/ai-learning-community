@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { LevelBadge } from "@/components/ui";
-import { ProgressBar } from "@/components/progress";
+import { ProgressBar } from "@/features/courses/progress";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Avatar } from "@/components/avatar";
 import { useToast } from "@/components/toast";

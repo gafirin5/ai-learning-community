@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { LevelBadge, EmptyState } from "@/components/ui";
-import { ProgressBar } from "@/components/progress";
+import { ProgressBar } from "@/features/courses/progress";
 import { Reveal } from "@/components/reveal";
 import type { Level } from "@/lib/types";
 

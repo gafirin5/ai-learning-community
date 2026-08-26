@@ -87,7 +87,8 @@ src/
     courses/                # daftar + detail + pelajaran
     forum/                  # daftar + detail thread
     projects/               # showcase + detail proyek
-  components/               # UI & fitur (header, tutor chat, quiz, dll.)
+  components/               # UI & komponen global (header, button, dll.)
+  features/                 # komponen spesifik per fitur (courses, forum, admin, dll.)
   lib/
     types.ts                # definisi tipe data
     data.ts                 # data seed (kursus, kuis, forum, proyek)

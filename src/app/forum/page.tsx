@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { categoryById, forumCategories, reportReasons } from "@/lib/data";
-import { VoteControl } from "@/components/vote-control";
+import { VoteControl } from "@/features/forum/vote-control";
 import { EmptyState, Tag } from "@/components/ui";
 import { Avatar } from "@/components/avatar";
 import { Reveal } from "@/components/reveal";
 import { useToast } from "@/components/toast";
 import { MarkdownLite } from "@/components/markdown-lite";
-import { ReactionBar } from "@/components/reactions";
+import { ReactionBar } from "@/features/forum/reactions";
 import { ImageGallery, ImageUpload } from "@/components/image-upload";
 import type { ForumCategoryId } from "@/lib/types";
 
