@@ -143,6 +143,18 @@ export interface Interest {
   topics: string[];
 }
 
+
+
+export interface AppNotification {
+  id: number;
+  userId: number; // who receives it
+  title: string;
+  body: string;
+  link: string;
+  read: boolean;
+  createdAt: string;
+}
+
 // ---- Store shape (persisted to localStorage) ----
 export interface StoreState {
   currentUserId: number | null;
@@ -173,4 +185,5 @@ export interface StoreState {
   recentlyViewed: number[]; // lesson ids, most recent first
   bookmarks: number[]; // course ids
   activity: { streak: number; lastActiveDate: string };
+  notifications: AppNotification[];
 }
