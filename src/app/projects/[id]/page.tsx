@@ -9,6 +9,8 @@ import { Avatar } from "@/components/avatar";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { VoteControl } from "@/components/vote-control";
 import { useToast } from "@/components/toast";
+import { LiveDemo } from "@/components/projects/LiveDemo";
+import { PeerReview } from "@/components/projects/PeerReview";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -87,7 +89,10 @@ export default function ProjectDetailPage() {
         )}
       </div>
 
-      <h2 className="mb-4 text-lg font-bold text-content">Feedback ({comments.length})</h2>
+      <LiveDemo />
+      <PeerReview />
+
+      <h2 className="mb-4 mt-8 text-lg font-bold text-content">Komentar Umum ({comments.length})</h2>
 
       <div className="card mb-6 p-5">
         {currentUser ? (
