@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { StoreState } from "@/lib/types";
-import { initialState } from "@/lib/tutor";
+import { initialState } from "./initial";
 import { StoreContext, type StoreContextValue } from "./context";
 import { loadState, mergeSeeds, STORAGE_KEY } from "./persistence";
 import { useAuthActions } from "./auth";

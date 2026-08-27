@@ -1,0 +1,27 @@
+import type { StoreState } from "@/lib/types";
+import { courses, lessons, quizzes, seedUsers } from "@/lib/data";
+
+export const initialState: StoreState = {
+  currentUserId: null,
+  users: seedUsers,
+  courses,
+  lessons,
+  quizzes,
+  seeded: false,
+  progress: {},
+  chat: {},
+  chatQuota: { date: "", used: 0 },
+  threads: [],
+  comments: [],
+  savedThreadIds: [],
+  reports: [],
+  projects: [],
+  projectComments: [],
+  votes: { threads: {}, comments: {}, projects: {} },
+  reactions: { threads: {}, comments: {} },
+  myReactions: { threads: {}, comments: {} },
+  interests: [],
+  recentlyViewed: [],
+  bookmarks: [],
+  activity: { streak: 0, lastActiveDate: "" },
+};

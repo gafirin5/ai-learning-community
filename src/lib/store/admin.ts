@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import type { Level, Question, Role, User, Course, Lesson, Quiz } from "@/lib/types";
-import { todayKey } from "@/lib/tutor";
-import { slugify } from "./persistence";
-import type { StateSetter, StoreState } from "./types-helpers";
+import { todayKey } from "@/lib/utils/date";
+import { slugify } from "@/lib/utils/slug";
+import type { StateSetter, StoreState } from "./context";
 
 export function useAdminActions(state: StoreState, setState: StateSetter) {
   const addUser = useCallback(

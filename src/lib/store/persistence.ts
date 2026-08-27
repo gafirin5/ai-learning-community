@@ -5,7 +5,7 @@ import {
   projectComments as seedProjectComments,
   projects as seedProjects,
 } from "@/lib/data";
-import { initialState } from "@/lib/tutor";
+import { initialState } from "./initial";
 
 export const STORAGE_KEY = "aic-store-v1";
 
@@ -109,11 +109,3 @@ export function mergeSeeds(s: StoreState): StoreState {
   };
 }
 
-export function slugify(title: string): string {
-  return title
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60) || "kursus";
-}

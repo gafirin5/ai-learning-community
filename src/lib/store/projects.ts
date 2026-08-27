@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Project, ProjectComment } from "@/lib/types";
-import { todayKey } from "@/lib/tutor";
-import type { StateSetter, StoreState } from "./types-helpers";
+import { todayKey } from "@/lib/utils/date";
+import type { StateSetter, StoreState } from "./context";
 
 export function useProjectsActions(state: StoreState, setState: StateSetter) {
   const addProject = useCallback(

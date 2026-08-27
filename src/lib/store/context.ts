@@ -1,5 +1,20 @@
 import { createContext, useContext } from "react";
-import type { ChatMessage, Course, ForumCategoryId, Level, ProgressEntry, Question, ReactionKey, Role, StoreState, User } from "@/lib/types";
+import type {
+  ChatMessage,
+  Course,
+  ForumCategoryId,
+  Level,
+  ProgressEntry,
+  Project,
+  Question,
+  ReactionKey,
+  Role,
+  StoreState,
+  User,
+} from "@/lib/types";
+
+export type StateSetter = (updater: (s: StoreState) => StoreState) => void;
+export type { StoreState } from "@/lib/types";
 
 interface AuthPayload {
   name: string;
@@ -62,8 +77,6 @@ export interface StoreContextValue {
   toggleBookmark: (courseId: number) => void;
   nextLesson: () => { courseSlug: string; lessonId: number } | null;
 }
-
-import type { Project } from "@/lib/types";
 
 export const StoreContext = createContext<StoreContextValue | null>(null);
 

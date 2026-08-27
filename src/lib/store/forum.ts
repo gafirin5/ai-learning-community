@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { ForumCategoryId, ForumComment, ForumThread, ReactionKey, Report } from "@/lib/types";
-import { todayKey } from "@/lib/tutor";
-import type { StateSetter, StoreState } from "./types-helpers";
+import { todayKey } from "@/lib/utils/date";
+import type { StateSetter, StoreState } from "./context";
 
 export function useForumActions(state: StoreState, setState: StateSetter) {
   const addThread = useCallback(

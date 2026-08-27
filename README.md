@@ -36,7 +36,6 @@ disimulasikan dengan aturan *scoping* lokal.
 ## Menjalankan
 
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
@@ -82,17 +81,15 @@ Kata sandi **apa saja** diterima (demo). Atau daftar akun baru — role default
 ```
 src/
   app/                      # routing App Router
-    page.tsx                # landing
+    page.tsx, layout.tsx, globals.css, providers.tsx
+    courses/ forum/ projects/ dashboard/ profile/ admin/
     login/ register/ onboarding/
-    courses/                # daftar + detail + pelajaran
-    forum/                  # daftar + detail thread
-    projects/               # showcase + detail proyek
-  components/               # UI & fitur (header, tutor chat, quiz, dll.)
+  components/
+    ui/ forum/ courses/ ai/ editor/ search/ admin/   # dikelompokkan per fitur
   lib/
-    types.ts                # definisi tipe data
-    data.ts                 # data seed (kursus, kuis, forum, proyek)
-    store.tsx               # state global + actions + persistence
-    tutor.ts                # logika scoping & jawaban AI tutor
+    types/*  data/*  store/*  ai/  utils/             # slice & utilitas
+    theme.tsx  tutor.ts
+  apps/web|api/  packages/ui/  # hierarki AGENTS.md (kode masih di src/ sampai Fase 2)
 ```
 
 ## Catatan Implementasi (menyimpang dari backend riil)
@@ -110,7 +107,7 @@ src/
 ## Menghubungkan ke Backend Riil
 
 Untuk memakai API sungguhan (PostgreSQL + LLM), ganti implementasi di
-`src/lib/store.tsx` dengan pemanggilan `fetch` ke endpoint PRD
+`src/lib/store/*` dengan pemanggilan `fetch` ke endpoint PRD
 (`/api/chat`, `/api/courses`, `/api/threads`, dst.) dan ganti
 `generateTutorReply` dengan panggilan ke service AI.
 

@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import type { ChatMessage } from "@/lib/types";
-import { DAILY_QUOTA, generateTutorReply, todayKey, withTodayQuota as _wq } from "@/lib/tutor";
-import type { StateSetter, StoreState } from "./types-helpers";
+import { generateTutorReply } from "@/lib/ai/tutor";
+import { DAILY_QUOTA, withTodayQuota as _wq } from "@/lib/ai/quota";
+import { todayKey } from "@/lib/utils/date";
+import type { StateSetter, StoreState } from "./context";
 
 export function useChatActions(state: StoreState, setState: StateSetter) {
   const getChat = useCallback(
