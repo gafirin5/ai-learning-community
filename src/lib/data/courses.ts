@@ -1,3 +1,4 @@
+// Seed: courses + lessons + quizzes (542L). Future: pecah jadi lessons.ts/quizzes.ts jika lane butuh ownership terpisah.
 import type { Course, Lesson, Quiz } from "../types";
 
 export const lessons: Lesson[] = [

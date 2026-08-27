@@ -1,3 +1,4 @@
+// Admin slice: users + courses/lessons/quizzes + projects. Future: pecah jadi admin-users.ts / admin-courses.ts.
 import { useCallback } from "react";
 import type { Level, Question, Role, User, Course, Lesson, Quiz } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";

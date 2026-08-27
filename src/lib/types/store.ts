@@ -1,7 +1,8 @@
 import type { Course, Lesson, Quiz } from "./course";
 import type { ForumComment, ForumThread, ReactionKey, Report } from "./forum";
 import type { Project, ProjectComment } from "./project";
-import type { ChatMessage, ProgressEntry } from "./progress";
+import type { ChatMessage } from "./chat";
+import type { ProgressEntry } from "./progress";
 import type { User } from "./user";
 
 export interface StoreState {
