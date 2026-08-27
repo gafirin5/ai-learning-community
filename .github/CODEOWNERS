@@ -1,0 +1,56 @@
+# CODEOWNERS — lane ownership for parallel agents
+# GitHub auto-requests review from owners when those paths change.
+
+# Shell & Design System (gatekeeper)
+/src/app/layout.tsx           @gafirin5
+/src/components/site-header.tsx @gafirin5
+/src/components/providers.tsx  @gafirin5
+/src/lib/theme.tsx             @gafirin5
+/src/app/globals.css           @gafirin5
+/tailwind.config.ts            @gafirin5
+
+# Auth & Onboarding (Lane B)
+/src/app/login/                @gafirin5
+/src/app/register/             @gafirin5
+/src/app/onboarding/           @gafirin5
+/src/lib/store/auth.ts         @gafirin5
+
+# Courses & Learning (Lane C)
+/src/app/courses/              @gafirin5
+/src/components/quiz-panel.tsx @gafirin5
+/src/components/tutor-chat.tsx @gafirin5
+/src/components/table-of-contents.tsx @gafirin5
+/src/components/progress.tsx   @gafirin5
+/src/lib/store/progress.ts     @gafirin5
+/src/lib/store/chat.ts         @gafirin5
+/src/lib/tutor.ts              @gafirin5
+/src/lib/data/courses.ts       @gafirin5
+
+# Forum (Lane D)
+/src/app/forum/                @gafirin5
+/src/components/vote-control.tsx @gafirin5
+/src/components/reactions.tsx  @gafirin5
+/src/components/markdown-lite.tsx @gafirin5
+/src/lib/store/forum.ts        @gafirin5
+/src/lib/data/forum.ts         @gafirin5
+
+# Projects & Showcase (Lane E)
+/src/app/projects/             @gafirin5
+/src/lib/store/projects.ts     @gafirin5
+/src/lib/data/projects.ts      @gafirin5
+
+# Dashboard & Profile (Lane F)
+/src/app/dashboard/            @gafirin5
+/src/app/profile/              @gafirin5
+
+# Admin (Lane G)
+/src/app/admin/                @gafirin5
+/src/components/admin/         @gafirin5
+/src/lib/store/admin.ts        @gafirin5
+
+# Mentor Hub (Lane H)
+/src/app/mentor/               @gafirin5
+
+# Global config
+/AGENTS.md                     @gafirin5
+/.github/workflows/            @gafirin5
