@@ -17,8 +17,8 @@ export default function LeaderboardPage() {
       <div className="mb-6">
         <h1 className="mb-2 text-3xl font-bold text-content">Leaderboard</h1>
         <p className="max-w-2xl text-muted">
-          Peringkat kontributor komunitas berdasarkan thread, komentar, proyek, dan apresiasi yang
-          diterima. Kamu naik peringkat setiap kali aktif berkontribusi.
+          Peringkat berdasarkan total poin (belajar + kontribusi). Selesaikan pelajaran dan kuis
+          untuk poin belajar, lalu berkontribusi di forum dan proyek untuk poin kontribusi.
         </p>
       </div>
 
@@ -62,8 +62,19 @@ export default function LeaderboardPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right text-muted">{r.posts}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-brand">
-                    {r.points.toLocaleString("id-ID")}
+                  <td className="px-4 py-3 text-right">
+                    <span className="font-semibold text-brand">
+                      {r.points.toLocaleString("id-ID")}
+                    </span>
+                    {r.learningPoints > 0 && (
+                      <span
+                        className="ml-1 block text-[10px] text-muted"
+                        title="Belajar + Kontribusi"
+                      >
+                        {r.learningPoints.toLocaleString("id-ID")} belajar ·{" "}
+                        {r.communityPoints.toLocaleString("id-ID")} kontribusi
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

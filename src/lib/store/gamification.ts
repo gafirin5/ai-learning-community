@@ -114,13 +114,26 @@ export interface LeaderboardRow {
   user: User;
   points: number;
   posts: number;
+  learningPoints: number;
+  communityPoints: number;
   isYou: boolean;
 }
 
 export function getLeaderboard(state: StoreState): LeaderboardRow[] {
   const rows = state.users.map((u) => {
     const { posts, points } = communityScore(state, u.id);
-    return { user: u, points, posts, isYou: u.id === state.currentUserId };
+    const isYou = u.id === state.currentUserId;
+    // Poin belajar (state.points) hanya tersimpan untuk current user pada
+    // frontend-only single-session; user lain hanya punya poin kontribusi.
+    const learningPoints = isYou ? state.points : 0;
+    return {
+      user: u,
+      points: points + learningPoints,
+      posts,
+      learningPoints,
+      communityPoints: points,
+      isYou,
+    };
   });
   return rows
     .filter((r) => r.posts > 0 || r.isYou)
