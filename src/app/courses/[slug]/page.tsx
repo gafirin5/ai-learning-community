@@ -8,10 +8,11 @@ import { ProgressBar } from "@/components/progress";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Avatar } from "@/components/avatar";
 import { useToast } from "@/components/toast";
+import { CertificateCard } from "@/components/certificate-card";
 
 export default function CourseDetailPage() {
   const params = useParams<{ slug: string }>();
-  const { getLessonProgress, courseProgressPercent, toggleBookmark, state } = useStore();
+  const { getLessonProgress, courseProgressPercent, toggleBookmark, state, issueCertificate, addNotification } = useStore();
   const { toast } = useToast();
   const course = state.courses.find((c) => c.slug === params.slug);
 
@@ -29,10 +30,24 @@ export default function CourseDetailPage() {
   const mentor = state.users.find((u) => u.id === course.mentorId);
   const pct = courseProgressPercent(course);
   const bookmarked = state.bookmarks.includes(course.id);
+  const canCert = pct === 100 && !!state.currentUserId;
+  const cert = state.certificates.find((c) => c.courseId === course.id && c.userId === state.currentUserId);
+  const currentUser = state.users.find((u) => u.id === state.currentUserId) ?? null;
 
   function handleBookmark() {
     toggleBookmark(course!.id);
     toast(bookmarked ? "Dihapus dari tersimpan" : "Kursus disimpan", "success");
+  }
+
+  function handleClaim() {
+    if (!canCert || !currentUser) return;
+    const r = issueCertificate(course!.id, course!.title);
+    if (r.ok) {
+      addNotification({ type: "certificate", title: "Sertifikat diterbitkan", body: "Selamat! Sertifikat " + course!.title + " telah diterbitkan.", href: "/bookmarks", userId: currentUser.id });
+      toast("Sertifikat diterbitkan! Lihat di Tersimpan.", "success");
+    } else {
+      toast(r.error ?? "Gagal", "error");
+    }
   }
 
   return (
@@ -76,6 +91,16 @@ export default function CourseDetailPage() {
             </div>
             <ProgressBar value={pct} className="h-3" />
           </div>
+
+          {canCert && !cert && (
+            <div className="card flex items-center justify-between p-4">
+              <span className="text-sm font-medium text-content">🎓 Kamu menyelesaikan 100% — klaim sertifikatmu!</span>
+              <button onClick={handleClaim} className="btn-primary">Klaim Sertifikat</button>
+            </div>
+          )}
+          {cert && currentUser && (
+            <CertificateCard courseTitle={cert.courseTitle} userName={currentUser.name} issuedAt={cert.issuedAt} />
+          )}
 
           {/* Lessons */}
           <h2 className="text-xl font-bold text-content">Daftar Pelajaran</h2>

@@ -4,6 +4,8 @@ import type { Project, ProjectComment } from "./project";
 import type { ChatMessage } from "./chat";
 import type { ProgressEntry } from "./progress";
 import type { User } from "./user";
+import type { AppNotification } from "./notification";
+import type { Certificate } from "./gamification";
 
 export interface StoreState {
   currentUserId: number | null;
@@ -38,4 +40,8 @@ export interface StoreState {
   recentlyViewed: number[];
   bookmarks: number[];
   activity: { streak: number; lastActiveDate: string };
+  notifications: AppNotification[];
+  certificates: Certificate[];
+  points: number;
+  badges: string[];
 }

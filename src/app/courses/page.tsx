@@ -51,6 +51,12 @@ export default function CoursesPage() {
         </p>
       </div>
 
+      {state.interests.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-2 font-semibold text-content">Untuk kamu</h2>
+          <p className="mb-3 text-sm text-muted">Berdasarkan minat: {state.interests.join(", ")}</p>
+        </div>
+      )}
       {/* Controls */}
       <div className="mb-6 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">

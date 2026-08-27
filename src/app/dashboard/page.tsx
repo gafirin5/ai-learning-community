@@ -7,6 +7,8 @@ import { ProgressBar, ProgressRing } from "@/components/progress";
 import { LevelBadge } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
+import { RecommendedCourses } from "@/components/recommended-courses";
+import { BADGE_DEFS } from "@/lib/store/gamification";
 
 export default function DashboardPage() {
   const { currentUser, state, nextLesson, courseProgressPercent } = useStore();
@@ -198,6 +200,27 @@ export default function DashboardPage() {
           </div>
 
           {/* Bookmarks */}
+          <RecommendedCourses />
+          {state.badges.length > 0 && (
+            <div className="card p-6">
+              <h3 className="mb-3 font-semibold text-content">Lencana</h3>
+              <div className="flex flex-wrap gap-2">
+                {state.badges.map((bid) => {
+                  const b = BADGE_DEFS.find((x) => x.id === bid);
+                  if (!b) return null;
+                  return <span key={bid} className="badge bg-warning-soft text-warning" title={b.description}>{b.emoji} {b.label}</span>;
+                })}
+              </div>
+            </div>
+          )}
+          {state.points > 0 && (
+            <div className="card p-6">
+              <h3 className="mb-2 font-semibold text-content">Poin</h3>
+              <p className="text-2xl font-bold text-brand">{state.points}</p>
+              <p className="text-xs text-muted">Terus selesaikan pelajaran & kuis untuk naik peringkat.</p>
+              <Link href="/leaderboard" className="btn-secondary mt-3 w-full text-center">Lihat Leaderboard</Link>
+            </div>
+          )}
           {state.bookmarks.length > 0 && (
             <div className="card p-6">
               <h3 className="mb-4 font-semibold text-content">Kursus Tersimpan</h3>

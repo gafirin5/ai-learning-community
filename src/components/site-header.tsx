@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 import { Avatar } from "@/components/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { GlobalSearch } from "@/components/global-search";
+import { NotificationsBell } from "@/components/notifications-bell";
 
 const NAV = [
   { href: "/courses", label: "Kursus" },
@@ -120,6 +121,12 @@ export function SiteHeader() {
           <div className="hidden sm:block">
             <GlobalSearch />
           </div>
+          {currentUser && (
+            <Link href="/bookmarks" className={"hidden sm:inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium "+(pathname.startsWith("/bookmarks") ? "text-brand" : "text-muted hover:bg-surface-hover hover:text-content")} aria-label="Tersimpan">
+              🔖<span className="hidden lg:inline">Tersimpan</span>
+            </Link>
+          )}
+          {currentUser && <NotificationsBell />}
           <ThemeToggle />
 
           {currentUser ? (

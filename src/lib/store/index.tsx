@@ -11,6 +11,8 @@ import { useChatActions } from "./chat";
 import { useForumActions } from "./forum";
 import { useProjectsActions } from "./projects";
 import { useAdminActions } from "./admin";
+import { useNotificationActions } from "./notifications";
+import { useGamificationActions } from "./gamification";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<StoreState>(initialState);
@@ -42,6 +44,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const forum = useForumActions(state, setState);
   const projects = useProjectsActions(state, setState);
   const admin = useAdminActions(state, setState);
+  const notifications = useNotificationActions(setState);
+  const gamification = useGamificationActions(state, setState);
 
   const value: StoreContextValue = {
     state,
@@ -52,6 +56,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ...forum,
     ...projects,
     ...admin,
+    ...notifications,
+    ...gamification,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

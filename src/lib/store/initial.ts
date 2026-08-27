@@ -24,4 +24,8 @@ export const initialState: StoreState = {
   recentlyViewed: [],
   bookmarks: [],
   activity: { streak: 0, lastActiveDate: "" },
+  notifications: [],
+  certificates: [],
+  points: 0,
+  badges: [],
 };

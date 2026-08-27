@@ -38,6 +38,10 @@ export function loadState(): StoreState {
         threads: { ...(parsed.myReactions?.threads ?? {}) },
         comments: { ...(parsed.myReactions?.comments ?? {}) },
       },
+      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+      certificates: Array.isArray(parsed.certificates) ? parsed.certificates : [],
+      points: typeof parsed.points === "number" ? parsed.points : 0,
+      badges: Array.isArray(parsed.badges) ? parsed.badges : [],
     };
   } catch {
     return initialState;

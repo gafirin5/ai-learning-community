@@ -8,8 +8,14 @@ export function useProgressActions(state: StoreState, setState: StateSetter) {
     (lessonId: number, done: boolean) => {
       setState((s) => {
         const prev = s.progress[lessonId] ?? { lessonId, status: "belum", quizScore: null };
+        const wasDone = prev.status === "selesai";
+        const willDone = done;
+        let points = s.points;
+        if (!wasDone && willDone) points += 10;
+        if (wasDone && !willDone) points = Math.max(0, points - 10);
         return {
           ...s,
+          points,
           progress: {
             ...s.progress,
             [lessonId]: { ...prev, status: done ? "selesai" : "belum" },

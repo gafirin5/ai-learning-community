@@ -76,6 +76,16 @@ export interface StoreContextValue {
   touchLesson: (lessonId: number) => void;
   toggleBookmark: (courseId: number) => void;
   nextLesson: () => { courseSlug: string; lessonId: number } | null;
+  // Notifications
+  addNotification: (data: { type: import("@/lib/types").NotificationType; title: string; body: string; href?: string; userId: number }) => void;
+  markNotificationRead: (id: number, read?: boolean) => void;
+  markAllRead: () => void;
+  deleteNotification: (id: number) => void;
+  clearRead: () => void;
+  // Gamification
+  awardPoints: (amount: number) => void;
+  issueCertificate: (courseId: number, courseTitle: string) => { ok: boolean; error?: string };
+  syncBadges: () => void;
 }
 
 export const StoreContext = createContext<StoreContextValue | null>(null);
