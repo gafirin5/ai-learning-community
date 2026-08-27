@@ -89,10 +89,22 @@ export default function ForumPage() {
     const sorted = [...list];
     // Pinned threads always float to the top, then by the chosen sort.
     if (sort === "terpopuler") {
-      sorted.sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.voteCount - a.voteCount);
+      sorted.sort((a, b) => {
+        if (b.pinned !== a.pinned) return Number(b.pinned) - Number(a.pinned);
+        // Combine vote count and replies for popularity
+        const scoreA = a.voteCount + (a.commentIds?.length || 0);
+        const scoreB = b.voteCount + (b.commentIds?.length || 0);
+        return scoreB - scoreA;
+      });
     } else {
       sorted.sort(
-        (a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt)
+        (a, b) => {
+          if (b.pinned !== a.pinned) return Number(b.pinned) - Number(a.pinned);
+          // Parse as date to compare properly instead of string compare
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA;
+        }
       );
     }
     return sorted;
