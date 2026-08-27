@@ -31,7 +31,7 @@ State global di `src/lib/store` (persist ke `localStorage` key `aic-store-v1`).
 
 ## Struktur Slice — Ringkas
 
-- Slice terpisah: `src/lib/types/*`, `src/lib/data/*`, `src/lib/store/*` (shim `types.ts`/`data.ts`/`store.tsx` tetap ada).
+- Slice terpisah: `src/lib/types/*` (`common`, `course`, `forum`, `project`, `progress`, `chat`, `interest`, `store`), `src/lib/data/*`, `src/lib/store/*` (`context`, `initial`, `persistence`, ...). Shim `types.ts`/`data.ts`/`store.tsx`/`types-helpers.ts` sudah dihapus (Fase 1: `1f9f495`); `src/lib/tutor.ts` sisa sebagai re-export kompatibilitas.
 - **Aturan emas:** Jangan edit `src/lib/store/<slice milik lane lain>` tanpa koordinasi. Kode baru impor dari slice, bukan shim.
 - Detail aturan & konvensi slice → [`apps/web/AGENTS.md`](apps/web/AGENTS.md) dan [`packages/ui/AGENTS.md`](packages/ui/AGENTS.md).
 
@@ -51,7 +51,9 @@ Format entri: `| Tanggal | Agent/Lane | Plan/Rencana | Status | Catatan/Coverage
 | Tanggal | Agent / Lane | Plan / Rencana | Status | Catatan / Coverage |
 |---------|--------------|----------------|--------|---------------------|
 | *contoh: 2026-08-27* | *Agent 1 / Lane B (Auth)* | *Slicing store + onboarding* | *Selesai* | *lint/tsc/build hijau, PR #12* |
-| | | | | |
+| 2026-08-27 | Fondasi / multi-agent (Plan A) | Slice store/types/data + AGENTS delegasi + CODEOWNERS/CI (`0879781`) | Selesai | lint/tsc/build hijau (14 routes), PR fondasi — 33 files |
+| 2026-08-27 | Fase 1 penataan `src/` (Plan B) | Hapus shim duplikat, pecah tutor->initial/ai/quota/utils, providers->app, kelompokkan components, betulkan tailwind/.gitignore/README (`1f9f495`) | Selesai | lint 0, tsc 0, build 14/14 hijau, push `1f9f495` |
+| 2026-08-27 | Fase 1 lanjutan — tipe | Pecah `types/progress.ts`->`chat.ts`/`interest.ts` + header god-file sisa (`a63018e`) | Selesai | tsc 0, lint 0, build 14/14 hijau, push `a63018e` |
 
 Aturan:
 - Satu baris per plan yang selesai. Jangan hapus baris agent lain.
