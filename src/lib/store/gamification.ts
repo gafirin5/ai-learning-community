@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import type { User } from "@/lib/types";
 import type { StateSetter, StoreState } from "./context";
 
 export const BADGE_DEFS: Array<{ id: string; label: string; emoji: string; description: string; check: (s: StoreState, userId: number) => boolean }> = [
@@ -83,13 +84,45 @@ export function useGamificationActions(state: StoreState, setState: StateSetter)
   return { awardPoints, issueCertificate, syncBadges };
 }
 
-export function getLeaderboard(state: StoreState) {
-  return state.users
-    .map((u) => ({
-      user: u,
-      points: u.id === state.currentUserId ? state.points : 0,
-      streak: u.id === state.currentUserId ? state.activity.streak : 0,
-      completed: u.id === state.currentUserId ? Object.values(state.progress).filter((p) => p.status === "selesai").length : 0,
-    }))
-    .sort((a, b) => b.points - a.points || b.streak - a.streak);
+// Poin kontribusi nyata yang bisa dihitung untuk SEMUA user dari data store
+// (frontend-only single-session: progress/streak hanya tersimpan untuk current user,
+// jadi leaderboard global tidak boleh menampilkan streak/progress user lain sebagai 0).
+const COMMUNITY_POINTS = {
+  thread: 15,
+  comment: 5,
+  project: 30,
+  voteReceived: 2,
+  likeReceived: 3,
+};
+
+function communityScore(state: StoreState, userId: number): { posts: number; points: number } {
+  const threads = state.threads.filter((t) => t.userId === userId && !t.hidden);
+  const comments = state.comments.filter((c) => c.userId === userId && !c.hidden);
+  const projects = state.projects.filter((p) => p.userId === userId);
+  const votesReceived = threads.reduce((a, t) => a + t.voteCount, 0);
+  const likesReceived = projects.reduce((a, p) => a + p.likeCount, 0);
+  const points =
+    threads.length * COMMUNITY_POINTS.thread +
+    comments.length * COMMUNITY_POINTS.comment +
+    projects.length * COMMUNITY_POINTS.project +
+    votesReceived * COMMUNITY_POINTS.voteReceived +
+    likesReceived * COMMUNITY_POINTS.likeReceived;
+  return { posts: threads.length + comments.length + projects.length, points };
+}
+
+export interface LeaderboardRow {
+  user: User;
+  points: number;
+  posts: number;
+  isYou: boolean;
+}
+
+export function getLeaderboard(state: StoreState): LeaderboardRow[] {
+  const rows = state.users.map((u) => {
+    const { posts, points } = communityScore(state, u.id);
+    return { user: u, points, posts, isYou: u.id === state.currentUserId };
+  });
+  return rows
+    .filter((r) => r.posts > 0 || r.isYou)
+    .sort((a, b) => b.points - a.points || b.posts - a.posts);
 }
