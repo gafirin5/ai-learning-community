@@ -3,6 +3,7 @@ import type { Role, User } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { setInterestsRemote } from "@/lib/api-write";
+import { uuidToNumber } from "@/lib/uuid";
 import type { StateSetter, StoreState } from "./context";
 
 interface AuthPayload {
@@ -37,29 +38,23 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
         const metaRole = typeof meta.role === "string" ? (meta.role as Role) : "learner";
         const metaName = typeof meta.name === "string" ? meta.name : profileEmail.split("@")[0];
 
-        // Map ke store lokal: cari user seed dengan email sama, kalau tidak ada buat baru.
+        // currentUserId harus sama dengan mapping uuidToNumber() yang dipakai
+        // fetchRemoteState, agar perbandingan kepemilikan (thread.userId ===
+        // currentUserId) konsisten. Upsert berdasarkan email, buang duplikat lama.
+        const mappedId = uuidToNumber(supabaseUser!.id);
         setState((s) => {
-          let user = s.users.find((u) => u.email.toLowerCase() === profileEmail);
-          if (!user) {
-            user = {
-              id: Date.now(),
-              name: metaName,
-              email: profileEmail,
-              role: metaRole === "guest" ? "learner" : metaRole,
-              joinedAt: todayKey(),
-            } as User;
-            return { ...s, users: [...s.users, user], currentUserId: user.id };
-          }
-          // Sinkronkan role/name dari Supabase jika berubah.
-          const synced = {
-            ...user,
-            name: metaName || user.name,
-            role: metaRole === "guest" ? user.role : metaRole,
+          const existing = s.users.find((u) => u.email.toLowerCase() === profileEmail);
+          const user: User = {
+            id: mappedId,
+            name: metaName || existing?.name || profileEmail.split("@")[0],
+            email: profileEmail,
+            role: metaRole === "guest" ? (existing?.role ?? "learner") : metaRole,
+            joinedAt: existing?.joinedAt ?? todayKey(),
           };
           return {
             ...s,
-            users: s.users.map((u) => (u.id === user.id ? synced : u)),
-            currentUserId: user.id,
+            users: [...s.users.filter((u) => u.email.toLowerCase() !== profileEmail), user],
+            currentUserId: mappedId,
           };
         });
         return { ok: true };
@@ -98,8 +93,10 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
           return { ok: false, error: msg };
         }
         const supabaseUser = data.user;
+        // Konsisten dengan mapping fetchRemoteState: id = uuidToNumber(uid Supabase).
+        const mappedId = uuidToNumber(supabaseUser!.id);
         const newUser: User = {
-          id: Date.now(),
+          id: mappedId,
           name: payload.name.trim(),
           email,
           role: payload.role ?? "learner",
@@ -107,7 +104,7 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
         };
         setState((s) => ({
           ...s,
-          users: [...s.users, newUser],
+          users: [...s.users.filter((u) => u.email.toLowerCase() !== email), newUser],
           currentUserId: newUser.id,
         }));
         return { ok: true, needsConfirmation: !supabaseUser?.confirmed_at };
