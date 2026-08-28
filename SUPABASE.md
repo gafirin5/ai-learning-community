@@ -79,3 +79,19 @@ Kontrak tipe tetap di `src/lib/types/*`; hanya sumber data yang berubah dari `lo
 - `anon key` aman diekspos ke browser (itulah fungsinya), tapi **jangan** commit `service_role` key.
 - RLS di schema memastikan user hanya bisa menulis data miliknya (`user_id = auth.uid()`).
 - Password disimpan sebagai hash bcrypt oleh Supabase Auth, bukan plaintext.
+
+
+## 6. Operasi tulis (sudah Supabase penuh)
+
+Semua operasi tulis (forum, proyek, progress, bookmark, reaksi, laporan, admin) kini
+lewat PostgREST/RPC dengan session login — RLS membatasi ke `auth.uid()`. Detail:
+
+- `toggle_thread_vote`/`toggle_comment_vote`/`toggle_project_vote` — vote atomic ± counter
+- `set_lesson_done`/`touch_activity` — progress + poin/streak
+- `delete_thread_cascade`/`delete_comment_cascade` — hapus + bersihkan reactions/reports yatim
+- `admin_create_user`/`admin_set_role`/`admin_delete_user` — kelola user (SECURITY DEFINER, cek `is_admin()`)
+
+**Krusial untuk identitas:** baris di `auth.identities` harus memakai
+`provider_id = user UUID` (bukan email) dan `id` = UUID acak — kalau tidak, login
+gagal `invalid_credentials`. `currentUserId` frontend = `uuidToNumber(uid Supabase)`
+(`src/lib/uuid.ts`) agar konsisten dengan mapping `fetchRemoteState`.

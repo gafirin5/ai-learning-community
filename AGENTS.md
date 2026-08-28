@@ -54,6 +54,7 @@ Format entri: `| Tanggal | Agent/Lane | Plan/Rencana | Status | Catatan/Coverage
 | 2026-08-27 | Fondasi / multi-agent (Plan A) | Slice store/types/data + AGENTS delegasi + CODEOWNERS/CI (`0879781`) | Selesai | lint/tsc/build hijau (14 routes), PR fondasi — 33 files |
 | 2026-08-27 | Fase 1 penataan `src/` (Plan B) | Hapus shim duplikat, pecah tutor->initial/ai/quota/utils, providers->app, kelompokkan components, betulkan tailwind/.gitignore/README (`1f9f495`) | Selesai | lint 0, tsc 0, build 14/14 hijau, push `1f9f495` |
 | 2026-08-27 | Fase 1 lanjutan — tipe | Pecah `types/progress.ts`->`chat.ts`/`interest.ts` + header god-file sisa (`a63018e`) | Selesai | tsc 0, lint 0, build 14/14 hijau, push `a63018e` |
+| 2026-08-28 | Lane I (API) | Migrasi tulis penuh ke Supabase (forum/admin/moderasi/reports/reactions) + RPC admin + fix identitas login | Selesai | lint/tsc/build hijau 16/16; tulis terverifikasi end-to-end (session learner); deploy VPS menyusul |
 
 Aturan:
 - Satu baris per plan yang selesai. Jangan hapus baris agent lain.
