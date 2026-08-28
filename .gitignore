@@ -39,6 +39,9 @@ yarn-error.log*
 # zcode session artifacts
 .zcode/
 
+# local deployment tools (contains credentials - NEVER commit)
+.deploy-tools/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
