@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { Role, User } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import { setInterestsRemote } from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
 interface AuthPayload {
@@ -140,7 +141,10 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
   }, [setState]);
 
   const setInterests = useCallback(
-    (ids: string[]) => {
+    async (ids: string[]) => {
+      if (isSupabaseConfigured()) {
+        await setInterestsRemote(ids);
+      }
       setState((s) => ({ ...s, interests: ids }));
     },
     [setState]

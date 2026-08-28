@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import type { User } from "@/lib/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { issueCertificateRemote } from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
 export const BADGE_DEFS: Array<{ id: string; label: string; emoji: string; description: string; check: (s: StoreState, userId: number) => boolean }> = [
@@ -54,10 +56,16 @@ export function useGamificationActions(state: StoreState, setState: StateSetter)
   );
 
   const issueCertificate = useCallback(
-    (courseId: number, courseTitle: string) => {
+    async (courseId: number, courseTitle: string) => {
       if (!state.currentUserId) return { ok: false, error: "Harus login." } as const;
       if (state.certificates.some((c) => c.courseId === courseId && c.userId === state.currentUserId)) {
         return { ok: false, error: "Sertifikat sudah diterbitkan." } as const;
+      }
+      if (isSupabaseConfigured()) {
+        const cert = await issueCertificateRemote(courseId, courseTitle);
+        const full = { ...cert, userId: state.currentUserId };
+        setState((s) => ({ ...s, certificates: [...s.certificates, full] }));
+        return { ok: true } as const;
       }
       const cert = {
         id: `cert-${courseId}-${state.currentUserId}-${Date.now()}`,

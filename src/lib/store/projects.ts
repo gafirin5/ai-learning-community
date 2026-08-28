@@ -1,11 +1,22 @@
 import { useCallback } from "react";
 import type { Project, ProjectComment } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  addProjectRemote,
+  addProjectCommentRemote,
+  voteProjectRemote,
+} from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
 export function useProjectsActions(state: StoreState, setState: StateSetter) {
   const addProject = useCallback(
-    (data: Omit<Project, "id" | "userId" | "createdAt" | "commentIds" | "likeCount">) => {
+    async (data: Omit<Project, "id" | "userId" | "createdAt" | "commentIds" | "likeCount">) => {
+      if (isSupabaseConfigured()) {
+        const project = await addProjectRemote(data);
+        setState((s) => ({ ...s, projects: [project, ...s.projects] }));
+        return;
+      }
       const project: Project = {
         ...data,
         id: Date.now(),
@@ -20,8 +31,19 @@ export function useProjectsActions(state: StoreState, setState: StateSetter) {
   );
 
   const addProjectComment = useCallback(
-    (projectId: number, body: string) => {
+    async (projectId: number, body: string) => {
       if (!body.trim() || !state.currentUserId) return;
+      if (isSupabaseConfigured()) {
+        const comment = await addProjectCommentRemote(projectId, body);
+        setState((s) => ({
+          ...s,
+          projectComments: [...s.projectComments, comment],
+          projects: s.projects.map((p) =>
+            p.id === projectId ? { ...p, commentIds: [...p.commentIds, comment.id] } : p
+          ),
+        }));
+        return;
+      }
       const comment: ProjectComment = {
         id: Date.now(),
         projectId,
@@ -41,7 +63,16 @@ export function useProjectsActions(state: StoreState, setState: StateSetter) {
   );
 
   const voteProject = useCallback(
-    (projectId: number, delta: 1 | -1) => {
+    async (projectId: number, delta: 1 | -1) => {
+      if (isSupabaseConfigured()) {
+        const { likeCount, myVote } = await voteProjectRemote(projectId, delta);
+        setState((s) => ({
+          ...s,
+          votes: { ...s.votes, projects: { ...s.votes.projects, [projectId]: myVote } },
+          projects: s.projects.map((p) => (p.id === projectId ? { ...p, likeCount } : p)),
+        }));
+        return;
+      }
       setState((s) => {
         const current = s.votes.projects[projectId] ?? 0;
         const next = current === delta ? 0 : delta;

@@ -13,7 +13,7 @@ import { useProjectsActions } from "./projects";
 import { useAdminActions } from "./admin";
 import { useNotificationActions } from "./notifications";
 import { useGamificationActions } from "./gamification";
-import { fetchRemoteState } from "@/lib/api";
+import { fetchRemoteState, fetchUserState } from "@/lib/api";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<StoreState>(initialState);
@@ -51,6 +51,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // Ambil state per-user dari Supabase (progress/bookmarks/interests/saves/votes/
+  // notifications/certificates/points/streak) supaya tulis persisten lintas session.
+  useEffect(() => {
+    let cancelled = false;
+    fetchUserState()
+      .then((us) => {
+        if (!us || cancelled) return;
+        setState((s) => ({
+          ...s,
+          progress: { ...us.progress },
+          bookmarks: us.bookmarks,
+          interests: us.interests,
+          savedThreadIds: us.savedThreadIds,
+          votes: us.votes,
+          notifications: us.notifications,
+          certificates: us.certificates,
+          points: us.points,
+          activity: { streak: us.streak, lastActiveDate: s.activity.lastActiveDate },
+        }));
+      })
+      .catch(() => {
+        /* belum login / offline */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [state.currentUserId]);
 
   useEffect(() => {
     if (!hydrated.current) return;

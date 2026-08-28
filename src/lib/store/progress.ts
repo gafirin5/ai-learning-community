@@ -1,11 +1,31 @@
 import { useCallback } from "react";
 import type { Course } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  setLessonDoneRemote,
+  saveQuizScoreRemote,
+  touchActivityRemote,
+  toggleBookmarkRemote,
+} from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
 export function useProgressActions(state: StoreState, setState: StateSetter) {
   const markLessonDone = useCallback(
-    (lessonId: number, done: boolean) => {
+    async (lessonId: number, done: boolean) => {
+      if (isSupabaseConfigured()) {
+        const prevQuiz = state.progress[lessonId]?.quizScore ?? null;
+        const { status, points } = await setLessonDoneRemote(lessonId, done, prevQuiz);
+        setState((s) => ({
+          ...s,
+          points,
+          progress: {
+            ...s.progress,
+            [lessonId]: { lessonId, status, quizScore: prevQuiz },
+          },
+        }));
+        return;
+      }
       setState((s) => {
         const prev = s.progress[lessonId] ?? { lessonId, status: "belum", quizScore: null };
         const wasDone = prev.status === "selesai";
@@ -23,11 +43,23 @@ export function useProgressActions(state: StoreState, setState: StateSetter) {
         };
       });
     },
-    [setState]
+    [state.progress, setState]
   );
 
   const saveQuizScore = useCallback(
-    (lessonId: number, score: number) => {
+    async (lessonId: number, score: number) => {
+      if (isSupabaseConfigured()) {
+        const { status, points } = await saveQuizScoreRemote(lessonId, score);
+        setState((s) => ({
+          ...s,
+          points,
+          progress: {
+            ...s.progress,
+            [lessonId]: { lessonId, status, quizScore: score },
+          },
+        }));
+        return;
+      }
       setState((s) => {
         const prev = s.progress[lessonId] ?? { lessonId, status: "selesai", quizScore: null };
         return {
@@ -58,7 +90,16 @@ export function useProgressActions(state: StoreState, setState: StateSetter) {
   );
 
   const touchLesson = useCallback(
-    (lessonId: number) => {
+    async (lessonId: number) => {
+      if (isSupabaseConfigured()) {
+        const streak = await touchActivityRemote();
+        setState((s) => ({
+          ...s,
+          recentlyViewed: [lessonId, ...s.recentlyViewed.filter((id) => id !== lessonId)].slice(0, 12),
+          activity: { streak, lastActiveDate: todayKey() },
+        }));
+        return;
+      }
       setState((s) => {
         const key = todayKey();
         let streak = s.activity.streak;
@@ -78,7 +119,17 @@ export function useProgressActions(state: StoreState, setState: StateSetter) {
   );
 
   const toggleBookmark = useCallback(
-    (courseId: number) => {
+    async (courseId: number) => {
+      if (isSupabaseConfigured()) {
+        const bookmarked = await toggleBookmarkRemote(courseId);
+        setState((s) => ({
+          ...s,
+          bookmarks: bookmarked
+            ? [...s.bookmarks, courseId]
+            : s.bookmarks.filter((id) => id !== courseId),
+        }));
+        return;
+      }
       setState((s) => ({
         ...s,
         bookmarks: s.bookmarks.includes(courseId)

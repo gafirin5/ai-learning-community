@@ -39,9 +39,9 @@ export default function CourseDetailPage() {
     toast(bookmarked ? "Dihapus dari tersimpan" : "Kursus disimpan", "success");
   }
 
-  function handleClaim() {
+  async function handleClaim() {
     if (!canCert || !currentUser) return;
-    const r = issueCertificate(course!.id, course!.title);
+    const r = await issueCertificate(course!.id, course!.title);
     if (r.ok) {
       addNotification({ type: "certificate", title: "Sertifikat diterbitkan", body: "Selamat! Sertifikat " + course!.title + " telah diterbitkan.", href: "/bookmarks", userId: currentUser.id });
       toast("Sertifikat diterbitkan! Lihat di Tersimpan.", "success");

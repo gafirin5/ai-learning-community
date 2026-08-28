@@ -1,11 +1,26 @@
 import { useCallback } from "react";
 import type { ForumCategoryId, ForumComment, ForumThread, ReactionKey, Report } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  addThreadRemote,
+  addCommentRemote,
+  voteThreadRemote,
+  voteCommentRemote,
+  toggleSaveThreadRemote,
+  incrementViewRemote,
+} from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
 export function useForumActions(state: StoreState, setState: StateSetter) {
   const addThread = useCallback(
-    (data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => {
+    async (data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => {
+      if (isSupabaseConfigured()) {
+        const thread = await addThreadRemote(data);
+        setState((s) => ({ ...s, threads: [thread, ...s.threads] }));
+        return thread.id;
+      }
+      // Fallback localStorage.
       const id = Date.now();
       const thread: ForumThread = {
         id,
@@ -30,8 +45,19 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const addComment = useCallback(
-    (threadId: number, body: string, parentId: number | null, images?: string[]) => {
+    async (threadId: number, body: string, parentId: number | null, images?: string[]) => {
       if (!body.trim() || !state.currentUserId) return;
+      if (isSupabaseConfigured()) {
+        const comment = await addCommentRemote(threadId, body, parentId, images);
+        setState((s) => ({
+          ...s,
+          comments: [...s.comments, comment],
+          threads: s.threads.map((t) =>
+            t.id === threadId ? { ...t, commentIds: [...t.commentIds, comment.id] } : t
+          ),
+        }));
+        return;
+      }
       const comment: ForumComment = {
         id: Date.now(),
         threadId,
@@ -55,7 +81,16 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const voteThread = useCallback(
-    (threadId: number, delta: 1 | -1) => {
+    async (threadId: number, delta: 1 | -1) => {
+      if (isSupabaseConfigured()) {
+        const { voteCount, myVote } = await voteThreadRemote(threadId, delta);
+        setState((s) => ({
+          ...s,
+          votes: { ...s.votes, threads: { ...s.votes.threads, [threadId]: myVote } },
+          threads: s.threads.map((t) => (t.id === threadId ? { ...t, voteCount } : t)),
+        }));
+        return;
+      }
       setState((s) => {
         const current = s.votes.threads[threadId] ?? 0;
         const next = current === delta ? 0 : delta;
@@ -73,7 +108,16 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const voteComment = useCallback(
-    (commentId: number, delta: 1 | -1) => {
+    async (commentId: number, delta: 1 | -1) => {
+      if (isSupabaseConfigured()) {
+        const { voteCount, myVote } = await voteCommentRemote(commentId, delta);
+        setState((s) => ({
+          ...s,
+          votes: { ...s.votes, comments: { ...s.votes.comments, [commentId]: myVote } },
+          comments: s.comments.map((c) => (c.id === commentId ? { ...c, voteCount } : c)),
+        }));
+        return;
+      }
       setState((s) => {
         const current = s.votes.comments[commentId] ?? 0;
         const next = current === delta ? 0 : delta;
@@ -91,7 +135,19 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const viewThread = useCallback(
-    (threadId: number) => {
+    async (threadId: number) => {
+      if (isSupabaseConfigured()) {
+        try {
+          const viewCount = await incrementViewRemote(threadId);
+          setState((s) => ({
+            ...s,
+            threads: s.threads.map((t) => (t.id === threadId ? { ...t, viewCount } : t)),
+          }));
+        } catch {
+          /* offline → abaikan */
+        }
+        return;
+      }
       setState((s) => ({
         ...s,
         threads: s.threads.map((t) =>
@@ -103,7 +159,17 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const toggleSaveThread = useCallback(
-    (threadId: number) => {
+    async (threadId: number) => {
+      if (isSupabaseConfigured()) {
+        const saved = await toggleSaveThreadRemote(threadId);
+        setState((s) => ({
+          ...s,
+          savedThreadIds: saved
+            ? [...s.savedThreadIds, threadId]
+            : s.savedThreadIds.filter((id) => id !== threadId),
+        }));
+        return;
+      }
       setState((s) => ({
         ...s,
         savedThreadIds: s.savedThreadIds.includes(threadId)

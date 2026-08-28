@@ -1,5 +1,11 @@
 import { useCallback } from "react";
 import type { NotificationType } from "@/lib/types";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  markNotificationReadRemote,
+  markAllReadRemote,
+  deleteNotificationRemote,
+} from "@/lib/api-write";
 import type { StateSetter } from "./context";
 
 export function useNotificationActions(setState: StateSetter) {
@@ -26,7 +32,10 @@ export function useNotificationActions(setState: StateSetter) {
   );
 
   const markNotificationRead = useCallback(
-    (id: number, read = true) => {
+    async (id: number, read = true) => {
+      if (isSupabaseConfigured()) {
+        await markNotificationReadRemote(id, read);
+      }
       setState((s) => ({
         ...s,
         notifications: s.notifications.map((n) => (n.id === id ? { ...n, read } : n)),
@@ -35,7 +44,10 @@ export function useNotificationActions(setState: StateSetter) {
     [setState]
   );
 
-  const markAllRead = useCallback(() => {
+  const markAllRead = useCallback(async () => {
+    if (isSupabaseConfigured()) {
+      await markAllReadRemote();
+    }
     setState((s) => ({
       ...s,
       notifications: s.notifications.map((n) => ({ ...n, read: true })),
@@ -43,7 +55,10 @@ export function useNotificationActions(setState: StateSetter) {
   }, [setState]);
 
   const deleteNotification = useCallback(
-    (id: number) => {
+    async (id: number) => {
+      if (isSupabaseConfigured()) {
+        await deleteNotificationRemote(id);
+      }
       setState((s) => ({
         ...s,
         notifications: s.notifications.filter((n) => n.id !== id),

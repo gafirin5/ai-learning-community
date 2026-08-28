@@ -10,6 +10,10 @@ import type {
   Question,
   User,
   Role,
+  ProgressEntry,
+  AppNotification,
+  NotificationType,
+  Certificate,
 } from "@/lib/types";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { uuidToNumber } from "@/lib/uuid";
@@ -23,6 +27,22 @@ export interface RemoteState {
   comments: ForumComment[];
   projects: Project[];
   projectComments: ProjectComment[];
+}
+
+export interface UserState {
+  progress: Record<number, ProgressEntry>;
+  bookmarks: number[];
+  interests: string[];
+  savedThreadIds: number[];
+  votes: {
+    threads: Record<number, 1 | -1 | 0>;
+    comments: Record<number, 1 | -1 | 0>;
+    projects: Record<number, 1 | -1 | 0>;
+  };
+  notifications: AppNotification[];
+  certificates: Certificate[];
+  points: number;
+  streak: number;
 }
 
 interface Row { [key: string]: unknown }
@@ -199,5 +219,87 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     comments,
     projects,
     projectComments: projectCommentRows.map(mapProjectComment),
+  };
+}
+
+export async function fetchUserState(): Promise<UserState | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = getSupabase();
+  const { data: session } = await supabase.auth.getSession();
+  if (!session?.session?.user) return null;
+
+  const [
+    progressRows,
+    bookmarkRows,
+    interestRows,
+    saveRows,
+    threadVoteRows,
+    commentVoteRows,
+    projectVoteRows,
+    notificationRows,
+    certRows,
+    statsRows,
+  ] = await Promise.all([
+    selectAll("progress", "lesson_id, status, quiz_score"),
+    selectAll("bookmarks", "course_id"),
+    selectAll("interests", "topic"),
+    selectAll("thread_saves", "thread_id"),
+    selectAll("thread_votes", "thread_id, value"),
+    selectAll("comment_votes", "comment_id, value"),
+    selectAll("project_votes", "project_id, value"),
+    selectAll("notifications", "id, type, title, body, href, read, created_at").then((r) =>
+      r.sort((a, b) => str(b.created_at).localeCompare(str(a.created_at)))
+    ),
+    selectAll("certificates", "id, course_id, course_title, issued_at"),
+    selectAll("user_stats", "points, streak"),
+  ]);
+
+  const progress: Record<number, ProgressEntry> = {};
+  for (const r of progressRows) {
+    progress[num(r.lesson_id)] = {
+      lessonId: num(r.lesson_id),
+      status: (str(r.status, "belum") as ProgressEntry["status"]),
+      quizScore: r.quiz_score == null ? null : num(r.quiz_score),
+    };
+  }
+
+  const votes = {
+    threads: {} as Record<number, 1 | -1 | 0>,
+    comments: {} as Record<number, 1 | -1 | 0>,
+    projects: {} as Record<number, 1 | -1 | 0>,
+  };
+  for (const r of threadVoteRows) votes.threads[num(r.thread_id)] = (num(r.value) as 1 | -1 | 0);
+  for (const r of commentVoteRows) votes.comments[num(r.comment_id)] = (num(r.value) as 1 | -1 | 0);
+  for (const r of projectVoteRows) votes.projects[num(r.project_id)] = (num(r.value) as 1 | -1 | 0);
+
+  const notifications: AppNotification[] = notificationRows.map((r) => ({
+    id: num(r.id),
+    userId: 0, // tidak dipakai UI
+    type: (str(r.type, "system") as NotificationType),
+    title: str(r.title),
+    body: str(r.body),
+    href: r.href == null ? undefined : str(r.href),
+    read: Boolean(r.read),
+    createdAt: str(r.created_at),
+  }));
+
+  const certificates: Certificate[] = certRows.map((r) => ({
+    id: str(r.id),
+    userId: 0,
+    courseId: num(r.course_id),
+    courseTitle: str(r.course_title),
+    issuedAt: str(r.issued_at),
+  }));
+
+  return {
+    progress,
+    bookmarks: bookmarkRows.map((r) => num(r.course_id)),
+    interests: interestRows.map((r) => str(r.topic)),
+    savedThreadIds: saveRows.map((r) => num(r.thread_id)),
+    votes,
+    notifications,
+    certificates,
+    points: statsRows.length ? num(statsRows[0].points) : 0,
+    streak: statsRows.length ? num(statsRows[0].streak) : 0,
   };
 }

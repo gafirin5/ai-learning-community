@@ -29,20 +29,20 @@ export interface StoreContextValue {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   register: (payload: AuthPayload) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
   logout: () => Promise<void>;
-  setInterests: (ids: string[]) => void;
-  markLessonDone: (lessonId: number, done: boolean) => void;
-  saveQuizScore: (lessonId: number, score: number) => void;
+  setInterests: (ids: string[]) => Promise<void>;
+  markLessonDone: (lessonId: number, done: boolean) => Promise<void>;
+  saveQuizScore: (lessonId: number, score: number) => Promise<void>;
   getLessonProgress: (lessonId: number) => ProgressEntry | undefined;
   courseProgressPercent: (course: Course) => number;
   sendChat: (lessonId: number, message: string) => { ok: boolean; error?: string; reply?: ChatMessage };
   getChat: (lessonId: number) => ChatMessage[];
   clearChat: (lessonId: number) => void;
-  addThread: (data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => number;
-  addComment: (threadId: number, body: string, parentId: number | null, images?: string[]) => void;
-  voteThread: (threadId: number, delta: 1 | -1) => void;
-  voteComment: (commentId: number, delta: 1 | -1) => void;
-  viewThread: (threadId: number) => void;
-  toggleSaveThread: (threadId: number) => void;
+  addThread: (data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => Promise<number>;
+  addComment: (threadId: number, body: string, parentId: number | null, images?: string[]) => Promise<void>;
+  voteThread: (threadId: number, delta: 1 | -1) => Promise<void>;
+  voteComment: (commentId: number, delta: 1 | -1) => Promise<void>;
+  viewThread: (threadId: number) => Promise<void>;
+  toggleSaveThread: (threadId: number) => Promise<void>;
   markAccepted: (threadId: number, commentId: number | null) => void;
   editThread: (threadId: number, data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => void;
   deleteThread: (threadId: number) => void;
@@ -55,9 +55,9 @@ export interface StoreContextValue {
   resolveReport: (reportId: number) => void;
   hideThread: (threadId: number, hidden: boolean) => void;
   hideComment: (commentId: number, hidden: boolean) => void;
-  addProject: (data: Omit<Project, "id" | "userId" | "createdAt" | "commentIds" | "likeCount">) => void;
-  addProjectComment: (projectId: number, body: string) => void;
-  voteProject: (projectId: number, delta: 1 | -1) => void;
+  addProject: (data: Omit<Project, "id" | "userId" | "createdAt" | "commentIds" | "likeCount">) => Promise<void>;
+  addProjectComment: (projectId: number, body: string) => Promise<void>;
+  voteProject: (projectId: number, delta: 1 | -1) => Promise<void>;
   addUser: (data: { name: string; email: string; role: Exclude<Role, "guest"> }) => { ok: boolean; error?: string };
   setUserRole: (userId: number, role: Exclude<Role, "guest">) => void;
   deleteUser: (userId: number) => void;
@@ -73,18 +73,18 @@ export interface StoreContextValue {
   deleteProject: (projectId: number) => void;
   deleteProjectComment: (commentId: number) => void;
   deleteReport: (reportId: number) => void;
-  touchLesson: (lessonId: number) => void;
-  toggleBookmark: (courseId: number) => void;
+  touchLesson: (lessonId: number) => Promise<void>;
+  toggleBookmark: (courseId: number) => Promise<void>;
   nextLesson: () => { courseSlug: string; lessonId: number } | null;
   // Notifications
   addNotification: (data: { type: import("@/lib/types").NotificationType; title: string; body: string; href?: string; userId: number }) => void;
-  markNotificationRead: (id: number, read?: boolean) => void;
-  markAllRead: () => void;
-  deleteNotification: (id: number) => void;
+  markNotificationRead: (id: number, read?: boolean) => Promise<void>;
+  markAllRead: () => Promise<void>;
+  deleteNotification: (id: number) => Promise<void>;
   clearRead: () => void;
   // Gamification
   awardPoints: (amount: number) => void;
-  issueCertificate: (courseId: number, courseTitle: string) => { ok: boolean; error?: string };
+  issueCertificate: (courseId: number, courseTitle: string) => Promise<{ ok: boolean; error?: string }>;
   syncBadges: () => void;
 }
 
