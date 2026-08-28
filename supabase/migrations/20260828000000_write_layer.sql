@@ -34,7 +34,7 @@ begin
     on conflict (user_id, thread_id) do update set value = excluded.value;
   end if;
 
-  update threads set vote_count = vote_count + v_net where id = p_thread_id;
+  update threads set vote_count = threads.vote_count + v_net where id = p_thread_id;
   select t.vote_count, v_next into vote_count, my_vote from threads t where t.id = p_thread_id;
   return next;
 end;
@@ -70,7 +70,7 @@ begin
     on conflict (user_id, comment_id) do update set value = excluded.value;
   end if;
 
-  update comments set vote_count = vote_count + v_net where id = p_comment_id;
+  update comments set vote_count = comments.vote_count + v_net where id = p_comment_id;
   select c.vote_count, v_next into vote_count, my_vote from comments c where c.id = p_comment_id;
   return next;
 end;
@@ -106,7 +106,7 @@ begin
     on conflict (user_id, project_id) do update set value = excluded.value;
   end if;
 
-  update projects set like_count = like_count + v_net where id = p_project_id;
+  update projects set like_count = projects.like_count + v_net where id = p_project_id;
   select p.like_count, v_next into like_count, my_vote from projects p where p.id = p_project_id;
   return next;
 end;
@@ -146,7 +146,7 @@ begin
   insert into user_stats (user_id, points, streak) values (v_uid, 0, 0)
   on conflict (user_id) do nothing;
 
-  update user_stats set points = greatest(0, points + v_delta) where user_id = v_uid;
+  update user_stats set points = greatest(0, user_stats.points + v_delta) where user_id = v_uid;
 
   select s.points into v_points from user_stats s where s.user_id = v_uid;
   status := v_status;

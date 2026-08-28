@@ -20,28 +20,30 @@ export function Users() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Exclude<Role, "guest">>("learner");
 
-  function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    const res = addUser({ name, email, role });
+    const res = await addUser({ name, email, role });
     if (!res.ok) {
       toast(res.error ?? "Gagal menambah pengguna", "error");
       return;
     }
-    toast("Pengguna ditambahkan");
+    toast(
+      res.generatedPassword
+        ? `Pengguna ditambahkan. Sandi: ${res.generatedPassword}`
+        : "Pengguna ditambahkan"
+    );
     setName("");
     setEmail("");
     setRole("learner");
   }
 
   function handleRole(userId: number, nextRole: Exclude<Role, "guest">) {
-    setUserRole(userId, nextRole);
-    toast("Peran diperbarui");
+    void setUserRole(userId, nextRole).then(() => toast("Peran diperbarui"));
   }
 
   function handleDelete(userId: number, name: string) {
     if (!window.confirm(`Hapus pengguna "${name}" beserta seluruh kontennya?`)) return;
-    deleteUser(userId);
-    toast("Pengguna dihapus");
+    void deleteUser(userId).then(() => toast("Pengguna dihapus"));
   }
 
   return (

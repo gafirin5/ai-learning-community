@@ -39,20 +39,20 @@ export function Reports() {
   function hide(r: Report) {
     if (r.targetType === "thread") hideThread(r.targetId, true);
     else hideComment(r.targetId, true);
-    resolveReport(r.id);
+    void resolveReport(r.id);
     toast("Konten disembunyikan");
   }
 
   function restore(r: Report) {
     if (r.targetType === "thread") hideThread(r.targetId, false);
     else hideComment(r.targetId, false);
-    resolveReport(r.id);
+    void resolveReport(r.id);
     toast("Konten dipulihkan");
   }
 
   function handleDelete(reportId: number) {
     if (!window.confirm("Hapus laporan ini secara permanen?")) return;
-    deleteReport(reportId);
+    void deleteReport(reportId).then(() => toast("Laporan dihapus"));
     toast("Laporan dihapus");
   }
 
@@ -89,7 +89,7 @@ export function Reports() {
                   <button onClick={() => hide(report)} className="btn-primary">Sembunyikan</button>
                 )}
                 {report.status === "open" && (
-                  <button onClick={() => { resolveReport(report.id); toast("Laporan ditandai selesai"); }} className="btn-secondary">
+                  <button onClick={() => { void resolveReport(report.id).then(() => toast("Laporan ditandai selesai")); }} className="btn-secondary">
                     Tandai selesai
                   </button>
                 )}

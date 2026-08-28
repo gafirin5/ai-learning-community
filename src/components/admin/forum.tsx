@@ -16,13 +16,13 @@ export function Forum() {
 
   function handleDeleteThread(id: number, title: string) {
     if (!window.confirm(`Hapus thread "${title}" beserta komentarnya?`)) return;
-    deleteThread(id);
+    void deleteThread(id).then(() => toast("Thread dihapus"));
     toast("Thread dihapus");
   }
 
   function handleDeleteComment(id: number) {
     if (!window.confirm("Hapus komentar ini beserta balasannya?")) return;
-    deleteComment(id);
+    void deleteComment(id).then(() => toast("Komentar dihapus"));
     toast("Komentar dihapus");
   }
 
@@ -47,10 +47,10 @@ export function Forum() {
               <span>{thread.commentIds.length} komentar</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => { pinThread(thread.id, !thread.pinned); toast(thread.pinned ? "Penyematan dibatalkan" : "Thread disematkan"); }} className="btn-secondary">
+              <button onClick={() => { void pinThread(thread.id, !thread.pinned).then(() => toast(thread.pinned ? "Penyematan dibatalkan" : "Thread disematkan")); }} className="btn-secondary">
                 {thread.pinned ? "Lepas sematan" : "Sematkan"}
               </button>
-              <button onClick={() => { hideThread(thread.id, !thread.hidden); toast(thread.hidden ? "Thread dipulihkan" : "Thread disembunyikan"); }} className="btn-secondary">
+              <button onClick={() => { void hideThread(thread.id, !thread.hidden).then(() => toast(thread.hidden ? "Thread dipulihkan" : "Thread disembunyikan")); }} className="btn-secondary">
                 {thread.hidden ? "Pulihkan" : "Sembunyikan"}
               </button>
               <button onClick={() => handleDeleteThread(thread.id, thread.title)} className="btn-danger">
@@ -69,7 +69,7 @@ export function Forum() {
                       {comment.body}
                     </p>
                     {comment.hidden && <span className="badge bg-danger-soft text-danger">Tersembunyi</span>}
-                    <button onClick={() => { hideComment(comment.id, !comment.hidden); toast(comment.hidden ? "Komentar dipulihkan" : "Komentar disembunyikan"); }} className="btn-ghost px-2 py-1 text-xs">
+                    <button onClick={() => { void hideComment(comment.id, !comment.hidden).then(() => toast(comment.hidden ? "Komentar dipulihkan" : "Komentar disembunyikan")); }} className="btn-ghost px-2 py-1 text-xs">
                       {comment.hidden ? "Pulihkan" : "Sembunyikan"}
                     </button>
                     <button onClick={() => handleDeleteComment(comment.id)} className="btn-ghost px-2 py-1 text-xs text-danger hover:bg-danger-soft">

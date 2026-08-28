@@ -164,7 +164,7 @@ export default function ForumPage() {
     setEditImages(t.images);
     setEditPreviewing(false);
   }
-  function handleEdit(e: React.FormEvent) {
+  async function handleEdit(e: React.FormEvent) {
     e.preventDefault();
     if (!editTitle.trim() || !editBody.trim() || editingId == null) return;
     const tags = editTags

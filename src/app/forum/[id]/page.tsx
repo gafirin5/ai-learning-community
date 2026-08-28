@@ -150,7 +150,7 @@ export default function ForumThreadPage() {
     setEditPreviewing(false);
   }
 
-  function handleEditThread(e: React.FormEvent) {
+  async function handleEditThread(e: React.FormEvent) {
     e.preventDefault();
     if (!editTitle.trim() || !editBody.trim()) return;
     const tags = editTags

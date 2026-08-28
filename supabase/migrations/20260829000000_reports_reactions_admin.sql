@@ -64,9 +64,17 @@ create index if not exists idx_reactions_target on public.reactions(target_type,
 
 alter table public.reactions enable row level security;
 
+-- Hitungan reaksi harus terlihat semua user; tulis hanya milik sendiri.
 drop policy if exists "reactions owner" on public.reactions;
-create policy "reactions owner" on public.reactions
-  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists "reactions select public" on public.reactions;
+drop policy if exists "reactions insert owner" on public.reactions;
+drop policy if exists "reactions delete owner" on public.reactions;
+create policy "reactions select public" on public.reactions
+  for select using (true);
+create policy "reactions insert owner" on public.reactions
+  for insert with check (user_id = auth.uid());
+create policy "reactions delete owner" on public.reactions
+  for delete using (user_id = auth.uid());
 
 -- ============================================================
 -- Kebijakan admin untuk konten (courses/lessons/quizzes)
@@ -304,3 +312,64 @@ revoke execute on function public.admin_delete_user(uuid) from anon, public;
 grant execute on function public.admin_create_user(text, text, text, text) to authenticated;
 grant execute on function public.admin_set_role(uuid, text) to authenticated;
 grant execute on function public.admin_delete_user(uuid) to authenticated;
+
+-- ============================================================
+-- RPC: hapus thread/komentar beserta reactions + reports yatim
+-- (reactions/reports memakai target generik tanpa FK, jadi dibersihkan manual)
+-- ============================================================
+create or replace function public.delete_thread_cascade(p_thread_id bigint)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then raise exception 'Login diperlukan'; end if;
+  if not exists (
+    select 1 from threads where id = p_thread_id and (user_id = v_uid or public.is_admin())
+  ) then
+    raise exception 'Tidak punya akses';
+  end if;
+  delete from reactions where target_type = 'comment'
+    and target_id in (select id from comments where thread_id = p_thread_id);
+  delete from reactions where target_type = 'thread' and target_id = p_thread_id;
+  delete from reports where target_type = 'comment'
+    and target_id in (select id from comments where thread_id = p_thread_id);
+  delete from reports where target_type = 'thread' and target_id = p_thread_id;
+  delete from threads where id = p_thread_id; -- cascade comments + votes + saves
+end;
+$$;
+
+create or replace function public.delete_comment_cascade(p_comment_id bigint)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_ids bigint[];
+begin
+  if v_uid is null then raise exception 'Login diperlukan'; end if;
+  if not exists (
+    select 1 from comments c where c.id = p_comment_id and (c.user_id = v_uid or public.is_admin())
+  ) then
+    raise exception 'Tidak punya akses';
+  end if;
+  -- Kumpulkan komentar + semua turunan (nested replies).
+  with recursive del as (
+    select id from comments where id = p_comment_id
+    union all
+    select c.id from comments c join del d on c.parent_id = d.id
+  )
+  select coalesce(array_agg(id), '{}') into v_ids from del;
+  delete from reactions where target_type = 'comment' and target_id = any(v_ids);
+  delete from reports where target_type = 'comment' and target_id = any(v_ids);
+  delete from comments where id = any(v_ids);
+end;
+$$;
+
+grant execute on function public.delete_thread_cascade(bigint) to authenticated;
+grant execute on function public.delete_comment_cascade(bigint) to authenticated;

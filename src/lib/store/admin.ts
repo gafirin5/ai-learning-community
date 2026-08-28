@@ -3,16 +3,62 @@ import { useCallback } from "react";
 import type { Level, Question, Role, User, Course, Lesson, Quiz } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
 import { slugify } from "@/lib/utils/slug";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  adminCreateUserRemote,
+  adminSetRoleRemote,
+  adminDeleteUserRemote,
+  addCourseRemote,
+  updateCourseRemote,
+  deleteCourseRemote,
+  addLessonRemote,
+  updateLessonRemote,
+  deleteLessonRemote,
+  saveQuizRemote,
+  deleteQuizRemote,
+  updateProjectRemote,
+  deleteProjectRemote,
+  deleteProjectCommentRemote,
+} from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
 export function useAdminActions(state: StoreState, setState: StateSetter) {
+  // mentorId di frontend adalah number hash; Supabase butuh uuid — resolve via email.
+  const emailOf = useCallback(
+    (userId: number | null | undefined): string =>
+      state.users.find((u) => u.id === userId)?.email ?? "",
+    [state.users]
+  );
+
   const addUser = useCallback(
-    (data: { name: string; email: string; role: Exclude<Role, "guest"> }) => {
+    async (data: { name: string; email: string; role: Exclude<Role, "guest"> }) => {
       const email = data.email.trim().toLowerCase();
-      if (!data.name.trim()) return { ok: false, error: "Nama wajib diisi." };
-      if (!email) return { ok: false, error: "Email wajib diisi." };
+      if (!data.name.trim()) return { ok: false as const, error: "Nama wajib diisi." };
+      if (!email) return { ok: false as const, error: "Email wajib diisi." };
       if (state.users.some((u) => u.email.toLowerCase() === email))
-        return { ok: false, error: "Email sudah terdaftar." };
+        return { ok: false as const, error: "Email sudah terdaftar." };
+
+      if (isSupabaseConfigured()) {
+        try {
+          const created = await adminCreateUserRemote({
+            name: data.name.trim(),
+            email,
+            role: data.role,
+          });
+          const newUser: User = {
+            id: created.id,
+            name: data.name.trim(),
+            email: created.email,
+            role: data.role,
+            joinedAt: todayKey(),
+          };
+          setState((s) => ({ ...s, users: [...s.users, newUser] }));
+          return { ok: true as const, generatedPassword: created.password };
+        } catch (e) {
+          return { ok: false as const, error: e instanceof Error ? e.message : "Gagal membuat user." };
+        }
+      }
+
       const newUser: User = {
         id: Date.now(),
         name: data.name.trim(),
@@ -21,33 +67,50 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
         joinedAt: todayKey(),
       };
       setState((s) => ({ ...s, users: [...s.users, newUser] }));
-      return { ok: true };
+      return { ok: true as const };
     },
     [state.users, setState]
   );
 
   const setUserRole = useCallback(
-    (userId: number, role: Exclude<Role, "guest">) => {
-      setState((s) => {
-        if (userId === s.currentUserId) return s;
-        const target = s.users.find((u) => u.id === userId);
-        if (!target || target.role === role) return s;
-        const isLastAdmin = target.role === "admin" && s.users.filter((u) => u.role === "admin").length === 1;
-        if (isLastAdmin) return s;
-        return { ...s, users: s.users.map((u) => (u.id === userId ? { ...u, role } : u)) };
-      });
+    async (userId: number, role: Exclude<Role, "guest">) => {
+      const target = state.users.find((u) => u.id === userId);
+      if (!target || target.role === role) return;
+      if (userId === state.currentUserId && role !== "admin") return;
+      const isLastAdmin = target.role === "admin" && state.users.filter((u) => u.role === "admin").length === 1;
+      if (isLastAdmin && role !== "admin") return;
+
+      if (isSupabaseConfigured()) {
+        try {
+          await adminSetRoleRemote(target.email, role);
+        } catch (e) {
+          // Guard server (admin terakhir / self) — jangan ubah state lokal.
+          console.error(e);
+          return;
+        }
+      }
+      setState((s) => ({ ...s, users: s.users.map((u) => (u.id === userId ? { ...u, role } : u)) }));
     },
-    [setState]
+    [state.users, state.currentUserId, setState]
   );
 
   const deleteUser = useCallback(
-    (userId: number) => {
+    async (userId: number) => {
+      const target = state.users.find((u) => u.id === userId);
+      if (!target) return;
+      if (userId === state.currentUserId) return;
+      const isLastAdmin = target.role === "admin" && state.users.filter((u) => u.role === "admin").length === 1;
+      if (isLastAdmin) return;
+
+      if (isSupabaseConfigured()) {
+        try {
+          await adminDeleteUserRemote(target.email);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => {
-        if (userId === s.currentUserId) return s;
-        const target = s.users.find((u) => u.id === userId);
-        if (!target) return s;
-        const isLastAdmin = target.role === "admin" && s.users.filter((u) => u.role === "admin").length === 1;
-        if (isLastAdmin) return s;
         const threadIds = new Set(s.threads.filter((t) => t.userId === userId).map((t) => t.id));
         const commentIds = new Set(s.comments.filter((c) => c.userId === userId || threadIds.has(c.threadId)).map((c) => c.id));
         const projectIds = new Set(s.projects.filter((p) => p.userId === userId).map((p) => p.id));
@@ -83,11 +146,27 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
         };
       });
     },
-    [setState]
+    [state.users, state.currentUserId, setState]
   );
 
   const addCourse = useCallback(
-    (data: { title: string; description: string; level: Level; topics: string[]; mentorId: number }) => {
+    async (data: { title: string; description: string; level: Level; topics: string[]; mentorId: number }) => {
+      if (isSupabaseConfigured()) {
+        try {
+          const created = await addCourseRemote({
+            title: data.title,
+            description: data.description,
+            level: data.level,
+            topics: data.topics,
+            mentorEmail: emailOf(data.mentorId),
+          });
+          setState((s) => ({ ...s, courses: [...s.courses, created] }));
+          return created.id;
+        } catch (e) {
+          console.error(e);
+          return 0;
+        }
+      }
       const id = Date.now();
       const course: Course = {
         id,
@@ -103,11 +182,30 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
       setState((s) => ({ ...s, courses: [...s.courses, course] }));
       return id;
     },
-    [setState]
+    [emailOf, setState]
   );
 
   const editCourse = useCallback(
-    (courseId: number, data: { title: string; description: string; level: Level; topics: string[]; mentorId: number }) => {
+    async (courseId: number, data: { title: string; description: string; level: Level; topics: string[]; mentorId: number }) => {
+      if (isSupabaseConfigured()) {
+        try {
+          const updated = await updateCourseRemote(courseId, {
+            title: data.title,
+            description: data.description,
+            level: data.level,
+            topics: data.topics,
+            mentorEmail: emailOf(data.mentorId),
+          });
+          setState((s) => ({
+            ...s,
+            courses: s.courses.map((c) => (c.id === courseId ? { ...updated, lessonIds: c.lessonIds } : c)),
+          }));
+          return;
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => ({
         ...s,
         courses: s.courses.map((c) =>
@@ -117,11 +215,19 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
         ),
       }));
     },
-    [setState]
+    [emailOf, setState]
   );
 
   const deleteCourse = useCallback(
-    (courseId: number) => {
+    async (courseId: number) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await deleteCourseRemote(courseId);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => {
         const course = s.courses.find((c) => c.id === courseId);
         const lessonIds = new Set(course?.lessonIds ?? []);
@@ -147,7 +253,23 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const addLesson = useCallback(
-    (courseId: number, data: { title: string; summary: string; content: string }) => {
+    async (courseId: number, data: { title: string; summary: string; content: string }) => {
+      if (isSupabaseConfigured()) {
+        try {
+          const lesson = await addLessonRemote(courseId, data);
+          setState((s) => ({
+            ...s,
+            lessons: [...s.lessons, lesson],
+            courses: s.courses.map((c) =>
+              c.id === courseId ? { ...c, lessonIds: [...c.lessonIds, lesson.id] } : c
+            ),
+          }));
+          return lesson.id;
+        } catch (e) {
+          console.error(e);
+          return 0;
+        }
+      }
       const id = Date.now();
       const lesson: Lesson = {
         id,
@@ -172,7 +294,15 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const editLesson = useCallback(
-    (lessonId: number, data: { title: string; summary: string; content: string }) => {
+    async (lessonId: number, data: { title: string; summary: string; content: string }) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await updateLessonRemote(lessonId, data);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => ({
         ...s,
         lessons: s.lessons.map((l) =>
@@ -184,7 +314,15 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const deleteLesson = useCallback(
-    (lessonId: number) => {
+    async (lessonId: number) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await deleteLessonRemote(lessonId);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => {
         const lesson = s.lessons.find((l) => l.id === lessonId);
         const progress = { ...s.progress };
@@ -208,7 +346,15 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const saveQuiz = useCallback(
-    (lessonId: number, data: { title: string; questions: Question[] }) => {
+    async (lessonId: number, data: { title: string; questions: Question[] }) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await saveQuizRemote(lessonId, { title: data.title.trim(), questions: data.questions });
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => {
         const existing = s.quizzes.find((q) => q.lessonId === lessonId);
         if (existing) {
@@ -227,14 +373,35 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const deleteQuiz = useCallback(
-    (lessonId: number) => {
+    async (lessonId: number) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await deleteQuizRemote(lessonId);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => ({ ...s, quizzes: s.quizzes.filter((q) => q.lessonId !== lessonId) }));
     },
     [setState]
   );
 
   const editProject = useCallback(
-    (projectId: number, data: { title: string; description: string; repoUrl: string; tags: string[]; level: Level }) => {
+    async (projectId: number, data: { title: string; description: string; repoUrl: string; tags: string[]; level: Level }) => {
+      if (isSupabaseConfigured()) {
+        try {
+          const updated = await updateProjectRemote(projectId, data);
+          setState((s) => ({
+            ...s,
+            projects: s.projects.map((p) => (p.id === projectId ? { ...updated, commentIds: p.commentIds } : p)),
+          }));
+          return;
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => ({
         ...s,
         projects: s.projects.map((p) =>
@@ -248,7 +415,15 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const deleteProject = useCallback(
-    (projectId: number) => {
+    async (projectId: number) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await deleteProjectRemote(projectId);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => {
         const votesProjects = { ...s.votes.projects };
         delete votesProjects[projectId];
@@ -264,7 +439,15 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
   );
 
   const deleteProjectComment = useCallback(
-    (commentId: number) => {
+    async (commentId: number) => {
+      if (isSupabaseConfigured()) {
+        try {
+          await deleteProjectCommentRemote(commentId);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+      }
       setState((s) => {
         const comment = s.projectComments.find((c) => c.id === commentId);
         return {

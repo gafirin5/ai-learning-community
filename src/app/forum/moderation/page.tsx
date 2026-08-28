@@ -52,7 +52,7 @@ export default function ModerationPage() {
   }
 
   function resolve(id: number) {
-    resolveReport(id);
+    void resolveReport(id).then(() => toast("Laporan ditandai selesai"));
     toast("Laporan ditandai selesai");
   }
 

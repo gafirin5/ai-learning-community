@@ -15,6 +15,7 @@ import type {
 } from "@/lib/types";
 import { getSupabase } from "@/lib/supabase";
 import { uuidToNumber } from "@/lib/uuid";
+import { slugify } from "@/lib/utils/slug";
 
 // Operasi tulis menuju Supabase. Setiap fungsi mengembalikan hasil server yang
 // sudah dipetakan ke tipe domain (bukan id Date.now() lokal).
@@ -90,6 +91,14 @@ function mapProjectComment(r: AnyRow): ProjectComment {
   };
 }
 
+async function currentUid(): Promise<string> {
+  const supabase = getSupabase();
+  const { data } = await supabase.auth.getUser();
+  const id = data.user?.id;
+  if (!id) throw new Error("Login diperlukan.");
+  return id;
+}
+
 function single<T>(data: unknown): T {
   const arr = data as T[];
   return arr[0];
@@ -108,6 +117,7 @@ export async function addThreadRemote(data: {
   const { data: inserted, error } = await supabase
     .from("threads")
     .insert({
+      user_id: await currentUid(),
       title: data.title.trim(),
       body: data.body.trim(),
       tags: data.tags,
@@ -131,7 +141,7 @@ export async function addCommentRemote(
   const supabase = getSupabase();
   const { data: inserted, error } = await supabase
     .from("comments")
-    .insert({ thread_id: threadId, body: body.trim(), parent_id: parentId, images: images ?? [] })
+    .insert({ thread_id: threadId, user_id: await currentUid(), body: body.trim(), parent_id: parentId, images: images ?? [] })
     .select("id, thread_id, user_id, parent_id, body, vote_count, created_at, hidden, images")
     .single();
   if (error) throw error;
@@ -202,6 +212,7 @@ export async function addProjectRemote(data: {
   const { data: inserted, error } = await supabase
     .from("projects")
     .insert({
+      user_id: await currentUid(),
       title: data.title.trim(),
       description: data.description.trim(),
       repo_url: data.repoUrl,
@@ -221,7 +232,7 @@ export async function addProjectCommentRemote(
   const supabase = getSupabase();
   const { data: inserted, error } = await supabase
     .from("project_comments")
-    .insert({ project_id: projectId, body: body.trim() })
+    .insert({ project_id: projectId, user_id: await currentUid(), body: body.trim() })
     .select("id, project_id, user_id, body, created_at")
     .single();
   if (error) throw error;
@@ -312,7 +323,7 @@ export async function issueCertificateRemote(
   const id = `cert-${courseId}-${Date.now()}`;
   const { data: inserted, error } = await supabase
     .from("certificates")
-    .insert({ id, course_id: courseId, course_title: courseTitle })
+    .insert({ id, user_id: await currentUid(), course_id: courseId, course_title: courseTitle })
     .select("id, course_id, course_title, issued_at")
     .single();
   if (error) throw error;
@@ -376,7 +387,17 @@ export async function updateThreadRemote(
 
 export async function deleteThreadRemote(threadId: number): Promise<void> {
   const supabase = getSupabase();
-  const { error } = await supabase.from("threads").delete().eq("id", threadId);
+  const { error } = await supabase.rpc("delete_thread_cascade", { p_thread_id: threadId });
+  if (error) throw error;
+}
+
+export async function deleteThreadCascadeRemote(threadId: number): Promise<void> {
+  return deleteThreadRemote(threadId);
+}
+
+export async function deleteCommentCascadeRemote(commentId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.rpc("delete_comment_cascade", { p_comment_id: commentId });
   if (error) throw error;
 }
 
@@ -450,7 +471,7 @@ export async function toggleReactionRemote(
   if (!key) return null;
   const { error } = await supabase
     .from("reactions")
-    .insert({ target_type: targetType, target_id: targetId, reaction_key: key });
+    .insert({ user_id: await currentUid(), target_type: targetType, target_id: targetId, reaction_key: key });
   if (error) throw error;
   return key;
 }
@@ -465,7 +486,7 @@ export async function createReportRemote(
   const supabase = getSupabase();
   const { data: inserted, error } = await supabase
     .from("reports")
-    .insert({ target_type: targetType, target_id: targetId, reason })
+    .insert({ reporter_id: await currentUid(), target_type: targetType, target_id: targetId, reason })
     .select("id, target_type, target_id, reporter_id, reason, status, created_at")
     .single();
   if (error) throw error;
@@ -569,25 +590,26 @@ export async function addCourseRemote(data: {
   const supabase = getSupabase();
   // mentor_id butuh uuid; frontend memakai number hash, jadi kirim email mentor.
   const uuid = await getProfileUuidByEmail(data.mentorEmail);
-  const { data: inserted, error } = await supabase
-    .from("courses")
-    .insert({
-      title: data.title.trim(),
-      description: data.description.trim(),
-      level: data.level,
-      topics: data.topics,
-      mentor_id: uuid,
-    })
-    .select("id, mentor_id, title, slug, description, level, topics, created_at")
-    .single();
-  if (error) throw error;
-  return mapCourseRow(inserted as unknown as AnyRow);
-}
-
-async function getCurrentUserEmail(): Promise<string> {
-  const supabase = getSupabase();
-  const { data } = await supabase.auth.getUser();
-  return data.user?.email ?? "";
+  const base = {
+    title: data.title.trim(),
+    description: data.description.trim(),
+    level: data.level,
+    topics: data.topics,
+    mentor_id: uuid,
+  };
+  // slug NOT NULL UNIQUE — retry dengan suffix kalau konflik.
+  let attempt = 0;
+  for (;;) {
+    const slug = attempt === 0 ? slugify(data.title) : slugify(data.title) + "-" + Date.now().toString(36).slice(-4);
+    const { data: inserted, error } = await supabase
+      .from("courses")
+      .insert({ ...base, slug })
+      .select("id, mentor_id, title, slug, description, level, topics, created_at")
+      .single();
+    if (!error) return mapCourseRow(inserted as unknown as AnyRow);
+    if ((error as { code?: string }).code !== "23505" || attempt >= 2) throw error;
+    attempt++;
+  }
 }
 
 export async function updateCourseRemote(

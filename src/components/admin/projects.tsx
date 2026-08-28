@@ -49,7 +49,7 @@ export function Projects() {
     setEditingId(projectId);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (editingId == null || !form.title.trim()) return;
     editProject(editingId, {

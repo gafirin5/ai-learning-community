@@ -9,6 +9,18 @@ import {
   voteCommentRemote,
   toggleSaveThreadRemote,
   incrementViewRemote,
+  updateThreadRemote,
+  deleteThreadCascadeRemote,
+  updateCommentRemote,
+  deleteCommentCascadeRemote,
+  setThreadPinnedRemote,
+  setAcceptedCommentRemote,
+  setThreadHiddenRemote,
+  setCommentHiddenRemote,
+  toggleReactionRemote,
+  createReportRemote,
+  resolveReportRemote,
+  deleteReportRemote,
 } from "@/lib/api-write";
 import type { StateSetter, StoreState } from "./context";
 
@@ -181,7 +193,8 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const markAccepted = useCallback(
-    (threadId: number, commentId: number | null) => {
+    async (threadId: number, commentId: number | null) => {
+      if (isSupabaseConfigured()) await setAcceptedCommentRemote(threadId, commentId);
       setState((s) => ({
         ...s,
         threads: s.threads.map((t) =>
@@ -193,7 +206,15 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const editThread = useCallback(
-    (threadId: number, data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => {
+    async (threadId: number, data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }) => {
+      if (isSupabaseConfigured()) {
+        const updated = await updateThreadRemote(threadId, data);
+        setState((s) => ({
+          ...s,
+          threads: s.threads.map((t) => (t.id === threadId ? { ...updated, commentIds: t.commentIds } : t)),
+        }));
+        return;
+      }
       setState((s) => ({
         ...s,
         threads: s.threads.map((t) =>
@@ -214,7 +235,8 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const deleteThread = useCallback(
-    (threadId: number) => {
+    async (threadId: number) => {
+      if (isSupabaseConfigured()) await deleteThreadCascadeRemote(threadId);
       setState((s) => {
         const commentIds = new Set(s.comments.filter((c) => c.threadId === threadId).map((c) => c.id));
         const votesComments = { ...s.votes.comments };
@@ -249,7 +271,15 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const editComment = useCallback(
-    (commentId: number, body: string, images?: string[]) => {
+    async (commentId: number, body: string, images?: string[]) => {
+      if (isSupabaseConfigured()) {
+        const updated = await updateCommentRemote(commentId, body, images);
+        setState((s) => ({
+          ...s,
+          comments: s.comments.map((c) => (c.id === commentId ? updated : c)),
+        }));
+        return;
+      }
       setState((s) => ({
         ...s,
         comments: s.comments.map((c) =>
@@ -261,7 +291,8 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const deleteComment = useCallback(
-    (commentId: number) => {
+    async (commentId: number) => {
+      if (isSupabaseConfigured()) await deleteCommentCascadeRemote(commentId);
       setState((s) => {
         const toDelete = new Set<number>([commentId]);
         let changed = true;
@@ -301,7 +332,8 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const pinThread = useCallback(
-    (threadId: number, pinned: boolean) => {
+    async (threadId: number, pinned: boolean) => {
+      if (isSupabaseConfigured()) await setThreadPinnedRemote(threadId, pinned);
       setState((s) => ({
         ...s,
         threads: s.threads.map((t) => (t.id === threadId ? { ...t, pinned } : t)),
@@ -311,8 +343,13 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const reportTarget = useCallback(
-    (targetType: Report["targetType"], targetId: number, reason: string) => {
+    async (targetType: Report["targetType"], targetId: number, reason: string) => {
       if (!reason.trim() || !state.currentUserId) return;
+      if (isSupabaseConfigured()) {
+        const report = await createReportRemote(targetType, targetId, reason);
+        setState((s) => ({ ...s, reports: [...s.reports, report] }));
+        return;
+      }
       setState((s) => {
         const alreadyReported = s.reports.some(
           (r) =>
@@ -338,17 +375,18 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const reportThread = useCallback(
-    (threadId: number, reason: string) => reportTarget("thread", threadId, reason),
+    async (threadId: number, reason: string) => reportTarget("thread", threadId, reason),
     [reportTarget]
   );
 
   const reportComment = useCallback(
-    (commentId: number, reason: string) => reportTarget("comment", commentId, reason),
+    async (commentId: number, reason: string) => reportTarget("comment", commentId, reason),
     [reportTarget]
   );
 
   const resolveReport = useCallback(
-    (reportId: number) => {
+    async (reportId: number) => {
+      if (isSupabaseConfigured()) await resolveReportRemote(reportId);
       setState((s) => ({
         ...s,
         reports: s.reports.map((r) => (r.id === reportId ? { ...r, status: "resolved" as const } : r)),
@@ -358,7 +396,8 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const hideThread = useCallback(
-    (threadId: number, hidden: boolean) => {
+    async (threadId: number, hidden: boolean) => {
+      if (isSupabaseConfigured()) await setThreadHiddenRemote(threadId, hidden);
       setState((s) => ({
         ...s,
         threads: s.threads.map((t) => (t.id === threadId ? { ...t, hidden } : t)),
@@ -368,7 +407,8 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const hideComment = useCallback(
-    (commentId: number, hidden: boolean) => {
+    async (commentId: number, hidden: boolean) => {
+      if (isSupabaseConfigured()) await setCommentHiddenRemote(commentId, hidden);
       setState((s) => ({
         ...s,
         comments: s.comments.map((c) => (c.id === commentId ? { ...c, hidden } : c)),
@@ -378,24 +418,28 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
   );
 
   const reactTo = useCallback(
-    (target: "thread" | "comment", id: number, key: ReactionKey) => {
+    async (target: "thread" | "comment", id: number, key: ReactionKey) => {
+      // Toggle single-reaction: klik key sama → hapus.
+      const currentKey = target === "thread" ? state.myReactions.threads[id] : state.myReactions.comments[id];
+      const nextKey = currentKey === key ? null : key;
+      if (isSupabaseConfigured()) await toggleReactionRemote(target, id, nextKey);
       setState((s) => {
         const reactions = target === "thread" ? s.reactions.threads : s.reactions.comments;
         const myReactions = target === "thread" ? s.myReactions.threads : s.myReactions.comments;
-        const currentKey = myReactions[id] ?? null;
-        const nextKey = currentKey === key ? null : key;
+        const prevKey = myReactions[id] ?? null;
+        const finalKey = prevKey === key ? null : key;
         const counts = { ...(reactions[id] ?? {}) };
-        if (currentKey) {
-          counts[currentKey] = Math.max(0, (counts[currentKey] ?? 0) - 1);
-          if (counts[currentKey] === 0) delete counts[currentKey];
+        if (prevKey) {
+          counts[prevKey] = Math.max(0, (counts[prevKey] ?? 0) - 1);
+          if (counts[prevKey] === 0) delete counts[prevKey];
         }
-        if (nextKey) {
-          counts[nextKey] = (counts[nextKey] ?? 0) + 1;
+        if (finalKey) {
+          counts[finalKey] = (counts[finalKey] ?? 0) + 1;
         }
         const nextReactions = { ...reactions };
         if (Object.keys(counts).length === 0) delete nextReactions[id];
         else nextReactions[id] = counts;
-        const nextMy = { ...myReactions, [id]: nextKey };
+        const nextMy = { ...myReactions, [id]: finalKey };
         return target === "thread"
           ? {
               ...s,
@@ -409,11 +453,12 @@ export function useForumActions(state: StoreState, setState: StateSetter) {
             };
       });
     },
-    [setState]
+    [state.myReactions, setState]
   );
 
   const deleteReport = useCallback(
-    (reportId: number) => {
+    async (reportId: number) => {
+      if (isSupabaseConfigured()) await deleteReportRemote(reportId);
       setState((s) => ({
         ...s,
         reports: s.reports.filter((r) => r.id !== reportId),

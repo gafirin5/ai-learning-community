@@ -80,14 +80,19 @@ export default function ProjectsPage() {
     return sorted;
   }, [state.projects, level, tag, query, sort]);
 
-  function handleCreate(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !description.trim()) return;
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim().replace(/^#/, "").toLowerCase())
       .filter(Boolean);
-    addProject({ title, description, repoUrl, tags, level: projLevel });
+    try {
+      await addProject({ title, description, repoUrl, tags, level: projLevel });
+    } catch {
+      toast("Gagal menambahkan proyek", "error");
+      return;
+    }
     setTitle("");
     setDescription("");
     setRepoUrl("");
