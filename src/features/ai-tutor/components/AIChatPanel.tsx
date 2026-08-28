@@ -11,7 +11,7 @@ import { useStore } from '@/lib/store/context';
 import type { ChatMessage, ChatPrompt, RequestOptions } from '../types';
 import { useChatHistory, useQuota } from '../hooks/useChat';
 import { OpenRouterProvider } from '../providers/openrouter';
-import MarkdownLite from '@/components/ui/markdown-lite';
+import { MarkdownLite } from '@/components/ui/markdown-lite';
 
 interface AIChatPanelProps {
   lessonId?: number;
@@ -27,7 +27,10 @@ export function AIChatPanel({
   lessonTitle 
 }: AIChatPanelProps) {
   const state = useStore();
-  const userId = state.currentUser?.uuid || '';
+  // Use currentUser ID from store context (number type)
+  // For Supabase operations, we'll need to fetch the actual UUID
+  const currentUserId = state.currentUser?.id || 0;
+  const userId = String(currentUserId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -106,8 +109,12 @@ export function AIChatPanel({
       const prompt: ChatPrompt = {
         ...buildPrompt(),
         messageHistory: [
-          ...messages.map(m => ({ ...m })), // Clone without timestamps
-          { role: 'user' as const, content: userMessage },
+          ...messages.map(m => ({ 
+            role: m.role, 
+            content: m.content,
+            timestamp: new Date() 
+          })),
+          { role: 'user' as const, content: userMessage, timestamp: new Date() },
         ],
       };
       
@@ -128,11 +135,10 @@ export function AIChatPanel({
               ...aiMsgPlaceholder,
               content: streamingBuffer.current,
             };
+            // Track last position for scroll
+            currentChunkIndex.current = updated.length - 1;
             return updated;
           });
-          
-          // Track last position for scroll
-          currentChunkIndex.current = updated.length - 1;
         }
         
         if (chunk.isComplete) {
