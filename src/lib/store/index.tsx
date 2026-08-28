@@ -13,6 +13,7 @@ import { useProjectsActions } from "./projects";
 import { useAdminActions } from "./admin";
 import { useNotificationActions } from "./notifications";
 import { useGamificationActions } from "./gamification";
+import { fetchRemoteState } from "@/lib/api";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<StoreState>(initialState);
@@ -22,6 +23,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const persisted = loadState();
     setState(mergeSeeds(persisted));
     hydrated.current = true;
+  }, []);
+
+  // Jika Supabase aktif, ambil konten dari PostgREST dan timpa konten lokal
+  // (users/courses/lessons/quizzes/threads/comments/projects/projectComments).
+  useEffect(() => {
+    let cancelled = false;
+    fetchRemoteState()
+      .then((remote) => {
+        if (!remote || cancelled) return;
+        setState((s) => ({
+          ...s,
+          users: remote.users.length ? remote.users : s.users,
+          courses: remote.courses.length ? remote.courses : s.courses,
+          lessons: remote.lessons.length ? remote.lessons : s.lessons,
+          quizzes: remote.quizzes.length ? remote.quizzes : s.quizzes,
+          threads: remote.threads.length ? remote.threads : s.threads,
+          comments: remote.comments.length ? remote.comments : s.comments,
+          projects: remote.projects.length ? remote.projects : s.projects,
+          projectComments: remote.projectComments.length ? remote.projectComments : s.projectComments,
+        }));
+      })
+      .catch(() => {
+        /* Supabase belum siap / offline → tetap pakai data lokal */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
