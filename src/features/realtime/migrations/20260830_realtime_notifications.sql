@@ -1,133 +1,114 @@
-/**
- * Realtime Notifications Feature - Database Migration Script
- * 
- * Owner: Lane I (API & Persistence)
- * Target Supabase Project: oucvzigtxfsdquzhrpwf
- */
-
 -- ============================================================================
--- NOTIFICATIONS TABLE - Enhanced with Realtime support
--- ============================================================================
-
-CREATE TABLE IF NOT EXISTS notifications (
-  id BIGSERIAL PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  type TEXT NOT NULL CHECK (type IN (
-    'forum_reply', 'forum_mention', 'mentor_invite', 
-    'mentor_session_confirmed', 'mentor_session_reminder',
-    'badge_earned', 'certificate_issued', 'project_like', 'project_comment'
-  )),
-  title TEXT NOT NULL,
-  body TEXT NOT NULL,
-  href TEXT,
-  read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, read);
-CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
-
--- Enable Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
-
--- ============================================================================
--- RLS POLICIES FOR NOTIFICATIONS
+-- REALTIME NOTIFICATIONS - fungsi notifikasi + trigger forum reply
+-- Owner: Lane I | Idempotent: aman dijalankan ulang
+--
+-- Catatan: tabel public.notifications SUDAH ada dari migration init
+-- (dengan policy "notifications owner" FOR ALL owner-only). File ini TIDAK
+-- menambah policy longgar baru - insert lintas-user dilakukan lewat
+-- create_notification() SECURITY DEFINER (bypass RLS sebagai table owner).
 -- ============================================================================
 
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-
--- Users can only see their own notifications
-CREATE POLICY "Users can view own notifications" ON notifications
-  FOR SELECT USING (user_id = auth.uid());
-
--- System can insert notifications (via RPC or service role)
-CREATE POLICY "System can create notifications" ON notifications
-  FOR INSERT WITH CHECK (true); -- Restrict to service role in production
-
--- Users can mark their own notifications as read
-CREATE POLICY "Users can update own notification read status" ON notifications
-  FOR UPDATE USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
-
--- ============================================================================
--- FUNCTION TO CREATE NOTIFICATION
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION public.create_notification(
-  p_user_id UUID,
-  p_type TEXT,
-  p_title TEXT,
-  p_body TEXT,
-  p_href TEXT = NULL
+-- ---------------------------------------------------------------------------
+-- 1. RPC: buat notifikasi untuk user mana pun (dipakai trigger & fitur lain)
+-- ---------------------------------------------------------------------------
+drop function if exists public.create_notification(uuid, text, text, text, text);
+create or replace function public.create_notification(
+  p_user_id uuid,
+  p_type text,
+  p_title text,
+  p_body text,
+  p_href text default null
 )
-RETURNS BIGINT
-SECURITY DEFINER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-  v_notification_id BIGINT;
-BEGIN
-  INSERT INTO notifications (user_id, type, title, body, href, created_at)
-  VALUES (p_user_id, p_type, p_title, p_body, p_href, NOW())
-  RETURNING id INTO v_notification_id;
-  
-  RETURN v_notification_id;
-END;
+returns bigint
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_id bigint;
+begin
+  insert into public.notifications (user_id, type, title, body, href)
+  values (p_user_id, p_type, p_title, p_body, p_href)
+  returning notifications.id into v_id;
+
+  return v_id;
+end;
 $$;
 
-COMMENT ON FUNCTION public.create_notification IS 'Create a notification for a specific user';
+-- ---------------------------------------------------------------------------
+-- 2. Trigger: notifikasi otomatis saat ada komentar baru di thread
+--    (pengarang thread tidak dinotifikasi jika komentarnya sendiri)
+-- ---------------------------------------------------------------------------
+drop function if exists public.handle_new_comment_notification();
+create or replace function public.handle_new_comment_notification()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_author uuid;
+  v_thread_title text;
+begin
+  select t.user_id, t.title into v_author, v_thread_title
+  from public.threads t
+  where t.id = new.thread_id;
 
--- ============================================================================
--- TRIGGER TO AUTO-CREATE NOTIFICATION ON COMMENT INSERT
--- ============================================================================
+  if v_author is null or v_author = new.user_id then
+    return new;
+  end if;
 
-CREATE OR REPLACE FUNCTION public.handle_new_comment_notification()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Get thread author and create notification
-  PERFORM public.create_notification(
-    (SELECT t.user_id FROM threads t WHERE t.id = NEW.thread_id),
+  perform public.create_notification(
+    v_author,
     'forum_reply',
-    'New reply to your post',
-    CASE WHEN LENGTH(NEW.body) > 100 THEN LEFT(NEW.body, 100) || '...' ELSE NEW.body END,
-    '/forum/' || NEW.thread_id
+    'Balasan baru di thread kamu',
+    coalesce(v_thread_title, 'Thread kamu') || ' — ' || left(new.body, 80),
+    '/forum/' || new.thread_id::text
   );
-  
-  RETURN NEW;
-EXCEPTION
-  WHEN OTHERS THEN
-    RAISE LOG 'Failed to create notification for comment: %', SQLERRM;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_comment_notification
-  AFTER INSERT ON comments
-  FOR EACH ROW
-  EXECUTE FUNCTION handle_new_comment_notification();
-
--- ============================================================================
--- CLEANUP HELPER FUNCTIONS
--- ============================================================================
-
--- Delete old unread notifications (optional maintenance)
-CREATE OR REPLACE FUNCTION public.cleanup_old_notifications(days_old INTEGER)
-RETURNS BIGINT
-SECURITY DEFINER
-LANGUAGE plpgsql
-AS $$
-DECLARE
-  v_deleted BIGINT;
-BEGIN
-  DELETE FROM notifications
-  WHERE created_at < NOW() - (days_old || ' days')::INTERVAL
-    AND read = true;
-  
-  GET DIAGNOSTICS v_deleted = ROW_COUNT;
-  
-  RETURN v_deleted;
-END;
+  return new;
+exception when others then
+  -- notifikasi tidak boleh menggagalkan insert komentar
+  return new;
+end;
 $$;
 
-COMMENT ON FUNCTION public.cleanup_old_notifications IS 'Delete read notifications older than specified days';
+drop trigger if exists trigger_comment_notification on public.comments;
+create trigger trigger_comment_notification
+  after insert on public.comments
+  for each row
+  execute function public.handle_new_comment_notification();
+
+-- ---------------------------------------------------------------------------
+-- 3. RPC maintenance: hapus notifikasi lama yang sudah dibaca (admin saja)
+-- ---------------------------------------------------------------------------
+drop function if exists public.cleanup_old_notifications(integer);
+create or replace function public.cleanup_old_notifications(days_old integer)
+returns bigint
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_deleted bigint;
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can run cleanup';
+  end if;
+
+  delete from public.notifications
+  where created_at < now() - (days_old || ' days')::interval
+    and read = true;
+
+  get diagnostics v_deleted = row_count;
+  return v_deleted;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 4. Realtime untuk tabel notifications (idempotent)
+-- ---------------------------------------------------------------------------
+do $$ begin
+  alter publication supabase_realtime add table public.notifications;
+exception when others then null; end $$;
+
+-- ---------------------------------------------------------------------------
+grant execute on function public.create_notification(uuid, text, text, text, text) to authenticated;
+grant execute on function public.cleanup_old_notifications(integer) to authenticated;
+
+notify pgrst, 'reload schema';
