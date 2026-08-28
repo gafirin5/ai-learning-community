@@ -14,6 +14,8 @@ import type {
   AppNotification,
   NotificationType,
   Certificate,
+  ReactionKey,
+  Report,
 } from "@/lib/types";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { uuidToNumber } from "@/lib/uuid";
@@ -27,6 +29,10 @@ export interface RemoteState {
   comments: ForumComment[];
   projects: Project[];
   projectComments: ProjectComment[];
+  reactions: {
+    threads: Record<number, Record<ReactionKey, number>>;
+    comments: Record<number, Record<ReactionKey, number>>;
+  };
 }
 
 export interface UserState {
@@ -43,6 +49,11 @@ export interface UserState {
   certificates: Certificate[];
   points: number;
   streak: number;
+  myReactions: {
+    threads: Record<number, ReactionKey | null>;
+    comments: Record<number, ReactionKey | null>;
+  };
+  reports: Report[];
 }
 
 interface Row { [key: string]: unknown }
@@ -182,6 +193,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     commentRows,
     projectRows,
     projectCommentRows,
+    reactionRows,
   ] = await Promise.all([
     selectAll("profiles", "id, name, email, role, joined_at"),
     selectAll("courses", "id, mentor_id, title, slug, description, level, topics, created_at"),
@@ -191,7 +203,24 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     selectAll("comments", "id, thread_id, user_id, parent_id, body, vote_count, created_at, hidden, images"),
     selectAll("projects", "id, user_id, title, description, repo_url, tags, level, created_at, like_count"),
     selectAll("project_comments", "id, project_id, user_id, body, created_at"),
+    selectAll("reactions", "user_id, target_type, target_id, reaction_key"),
   ]);
+
+  // Hitungan reaksi per target (publik — semua user).
+  const reactions: {
+    threads: Record<number, Record<ReactionKey, number>>;
+    comments: Record<number, Record<ReactionKey, number>>;
+  } = { threads: {}, comments: {} };
+  for (const r of reactionRows) {
+    const targetType = str(r.target_type);
+    const targetId = num(r.target_id);
+    const key = str(r.reaction_key) as ReactionKey;
+    if (targetType !== "thread" && targetType !== "comment") continue;
+    const bucket =
+      targetType === "thread" ? reactions.threads : reactions.comments;
+    bucket[targetId] = bucket[targetId] ?? ({} as Record<ReactionKey, number>);
+    bucket[targetId][key] = (bucket[targetId][key] ?? 0) + 1;
+  }
 
   const courses = courseRows.map(mapCourse);
   const lessons = lessonRows.map(mapLesson);
@@ -219,6 +248,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     comments,
     projects,
     projectComments: projectCommentRows.map(mapProjectComment),
+    reactions,
   };
 }
 
@@ -239,6 +269,8 @@ export async function fetchUserState(): Promise<UserState | null> {
     notificationRows,
     certRows,
     statsRows,
+    myReactionRows,
+    reportRows,
   ] = await Promise.all([
     selectAll("progress", "lesson_id, status, quiz_score"),
     selectAll("bookmarks", "course_id"),
@@ -252,6 +284,10 @@ export async function fetchUserState(): Promise<UserState | null> {
     ),
     selectAll("certificates", "id, course_id, course_title, issued_at"),
     selectAll("user_stats", "points, streak"),
+    selectAll("reactions", "target_type, target_id, reaction_key"),
+    selectAll("reports", "id, target_type, target_id, reporter_id, reason, status, created_at").then((r) =>
+      r.sort((a, b) => num(b.id) - num(a.id))
+    ),
   ]);
 
   const progress: Record<number, ProgressEntry> = {};
@@ -291,6 +327,28 @@ export async function fetchUserState(): Promise<UserState | null> {
     issuedAt: str(r.issued_at),
   }));
 
+  const myReactions: {
+    threads: Record<number, ReactionKey | null>;
+    comments: Record<number, ReactionKey | null>;
+  } = { threads: {}, comments: {} };
+  for (const r of myReactionRows) {
+    const targetType = str(r.target_type);
+    const targetId = num(r.target_id);
+    const key = str(r.reaction_key) as ReactionKey;
+    if (targetType === "thread") myReactions.threads[targetId] = key;
+    else if (targetType === "comment") myReactions.comments[targetId] = key;
+  }
+
+  const reports: Report[] = reportRows.map((r) => ({
+    id: num(r.id),
+    targetType: str(r.target_type) as Report["targetType"],
+    targetId: num(r.target_id),
+    reporterId: uuidToNumber(str(r.reporter_id)),
+    reason: str(r.reason),
+    createdAt: str(r.created_at),
+    status: str(r.status, "open") as Report["status"],
+  }));
+
   return {
     progress,
     bookmarks: bookmarkRows.map((r) => num(r.course_id)),
@@ -301,5 +359,7 @@ export async function fetchUserState(): Promise<UserState | null> {
     certificates,
     points: statsRows.length ? num(statsRows[0].points) : 0,
     streak: statsRows.length ? num(statsRows[0].streak) : 0,
+    myReactions,
+    reports,
   };
 }

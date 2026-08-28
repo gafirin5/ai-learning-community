@@ -134,7 +134,26 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
         /* abaikan error signOut, tetap clear lokal */
       }
     }
-    setState((s) => ({ ...s, currentUserId: null }));
+    // Reset state per-user agar user berikutnya tidak mewarisi data user lama.
+    setState((s) => ({
+      ...s,
+      currentUserId: null,
+      progress: {},
+      bookmarks: [],
+      interests: [],
+      savedThreadIds: [],
+      votes: { threads: {}, comments: {}, projects: {} },
+      myReactions: { threads: {}, comments: {} },
+      certificates: [],
+      notifications: [],
+      reports: [],
+      points: 0,
+      badges: [],
+      recentlyViewed: [],
+      activity: { streak: 0, lastActiveDate: "" },
+      chat: {},
+      chatQuota: { date: "", used: 0 },
+    }));
   }, [setState]);
 
   const setInterests = useCallback(

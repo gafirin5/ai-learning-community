@@ -42,6 +42,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           comments: remote.comments.length ? remote.comments : s.comments,
           projects: remote.projects.length ? remote.projects : s.projects,
           projectComments: remote.projectComments.length ? remote.projectComments : s.projectComments,
+          reactions: remote.reactions,
         }));
       })
       .catch(() => {
@@ -70,6 +71,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           certificates: us.certificates,
           points: us.points,
           activity: { streak: us.streak, lastActiveDate: s.activity.lastActiveDate },
+          myReactions: us.myReactions,
+          reports: us.reports,
         }));
       })
       .catch(() => {

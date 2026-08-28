@@ -1,11 +1,17 @@
 import type {
   Certificate,
+  Course,
   ForumCategoryId,
   ForumComment,
   ForumThread,
+  Level,
+  Lesson,
   ProgressStatus,
   Project,
   ProjectComment,
+  Question,
+  Report,
+  Role,
 } from "@/lib/types";
 import { getSupabase } from "@/lib/supabase";
 import { uuidToNumber } from "@/lib/uuid";
@@ -337,5 +343,389 @@ export async function markAllReadRemote(): Promise<void> {
 export async function deleteNotificationRemote(id: number): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase.from("notifications").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ---- Forum moderation (thread/comment edit, delete, pin, hide, accept) ----
+
+const THREAD_SELECT =
+  "id, user_id, title, body, tags, vote_count, view_count, accepted_comment_id, created_at, category_id, pinned, hidden, images";
+const COMMENT_SELECT =
+  "id, thread_id, user_id, parent_id, body, vote_count, created_at, hidden, images";
+
+export async function updateThreadRemote(
+  threadId: number,
+  data: { title: string; body: string; tags: string[]; categoryId: ForumCategoryId; images?: string[] }
+): Promise<ForumThread> {
+  const supabase = getSupabase();
+  const { data: updated, error } = await supabase
+    .from("threads")
+    .update({
+      title: data.title.trim(),
+      body: data.body.trim(),
+      tags: data.tags,
+      category_id: data.categoryId,
+      images: data.images ?? [],
+    })
+    .eq("id", threadId)
+    .select(THREAD_SELECT)
+    .single();
+  if (error) throw error;
+  return mapThread(updated as unknown as AnyRow);
+}
+
+export async function deleteThreadRemote(threadId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("threads").delete().eq("id", threadId);
+  if (error) throw error;
+}
+
+export async function updateCommentRemote(
+  commentId: number,
+  body: string,
+  images?: string[]
+): Promise<ForumComment> {
+  const supabase = getSupabase();
+  const { data: updated, error } = await supabase
+    .from("comments")
+    .update({ body: body.trim(), ...(images ? { images } : {}) })
+    .eq("id", commentId)
+    .select(COMMENT_SELECT)
+    .single();
+  if (error) throw error;
+  return mapComment(updated as unknown as AnyRow);
+}
+
+export async function deleteCommentRemote(commentId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("comments").delete().eq("id", commentId);
+  if (error) throw error;
+}
+
+export async function setThreadPinnedRemote(threadId: number, pinned: boolean): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("threads").update({ pinned }).eq("id", threadId);
+  if (error) throw error;
+}
+
+export async function setThreadHiddenRemote(threadId: number, hidden: boolean): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("threads").update({ hidden }).eq("id", threadId);
+  if (error) throw error;
+}
+
+export async function setCommentHiddenRemote(commentId: number, hidden: boolean): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("comments").update({ hidden }).eq("id", commentId);
+  if (error) throw error;
+}
+
+export async function setAcceptedCommentRemote(
+  threadId: number,
+  commentId: number | null
+): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("threads")
+    .update({ accepted_comment_id: commentId })
+    .eq("id", threadId);
+  if (error) throw error;
+}
+
+// ---- Reactions ----
+
+export async function toggleReactionRemote(
+  targetType: "thread" | "comment",
+  targetId: number,
+  key: string | null
+): Promise<string | null> {
+  const supabase = getSupabase();
+  // Reaksi lama user untuk target ini dihapus dulu (toggle single-reaction).
+  const { error: delErr } = await supabase
+    .from("reactions")
+    .delete()
+    .eq("target_type", targetType)
+    .eq("target_id", targetId);
+  if (delErr) throw delErr;
+  if (!key) return null;
+  const { error } = await supabase
+    .from("reactions")
+    .insert({ target_type: targetType, target_id: targetId, reaction_key: key });
+  if (error) throw error;
+  return key;
+}
+
+// ---- Reports ----
+
+export async function createReportRemote(
+  targetType: "thread" | "comment",
+  targetId: number,
+  reason: string
+): Promise<Report> {
+  const supabase = getSupabase();
+  const { data: inserted, error } = await supabase
+    .from("reports")
+    .insert({ target_type: targetType, target_id: targetId, reason })
+    .select("id, target_type, target_id, reporter_id, reason, status, created_at")
+    .single();
+  if (error) throw error;
+  const r = inserted as unknown as AnyRow;
+  return {
+    id: num(r.id),
+    targetType: str(r.target_type) as Report["targetType"],
+    targetId: num(r.target_id),
+    reporterId: uuidToNumber(str(r.reporter_id)),
+    reason: str(r.reason),
+    createdAt: str(r.created_at),
+    status: str(r.status, "open") as Report["status"],
+  };
+}
+
+export async function resolveReportRemote(reportId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("reports").update({ status: "resolved" }).eq("id", reportId);
+  if (error) throw error;
+}
+
+export async function deleteReportRemote(reportId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("reports").delete().eq("id", reportId);
+  if (error) throw error;
+}
+
+// ---- Admin: kelola user (via RPC SECURITY DEFINER) ----
+
+async function getProfileUuidByEmail(email: string): Promise<string> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("User tidak ditemukan.");
+  return str((data as unknown as AnyRow).id);
+}
+
+export async function adminCreateUserRemote(data: {
+  name: string;
+  email: string;
+  role: Exclude<Role, "guest">;
+  password?: string;
+}): Promise<{ id: number; email: string; password: string }> {
+  const supabase = getSupabase();
+  const { data: res, error } = await supabase.rpc("admin_create_user", {
+    p_email: data.email,
+    p_password: data.password ?? null,
+    p_name: data.name,
+    p_role: data.role,
+  });
+  if (error) throw error;
+  const row = single<{ out_id: string; out_email: string; out_password: string }>(res);
+  return {
+    id: uuidToNumber(row.out_id),
+    email: row.out_email,
+    password: row.out_password,
+  };
+}
+
+export async function adminSetRoleRemote(email: string, role: Exclude<Role, "guest">): Promise<void> {
+  const supabase = getSupabase();
+  const uuid = await getProfileUuidByEmail(email);
+  const { error } = await supabase.rpc("admin_set_role", { p_user_id: uuid, p_role: role });
+  if (error) throw error;
+}
+
+export async function adminDeleteUserRemote(email: string): Promise<void> {
+  const supabase = getSupabase();
+  const uuid = await getProfileUuidByEmail(email);
+  const { error } = await supabase.rpc("admin_delete_user", { p_user_id: uuid });
+  if (error) throw error;
+}
+
+// ---- Admin: CRUD konten ----
+
+function mapCourseRow(r: AnyRow): Course {
+  return {
+    id: num(r.id),
+    mentorId: uuidToNumber(str(r.mentor_id)),
+    title: str(r.title),
+    slug: str(r.slug),
+    description: str(r.description),
+    level: (str(r.level, "pemula") as Course["level"]),
+    topics: strArr(r.topics),
+    lessonIds: [],
+    createdAt: str(r.created_at),
+  };
+}
+
+export async function addCourseRemote(data: {
+  title: string;
+  description: string;
+  level: Level;
+  topics: string[];
+  mentorEmail: string;
+}): Promise<Course> {
+  const supabase = getSupabase();
+  // mentor_id butuh uuid; frontend memakai number hash, jadi kirim email mentor.
+  const uuid = await getProfileUuidByEmail(data.mentorEmail);
+  const { data: inserted, error } = await supabase
+    .from("courses")
+    .insert({
+      title: data.title.trim(),
+      description: data.description.trim(),
+      level: data.level,
+      topics: data.topics,
+      mentor_id: uuid,
+    })
+    .select("id, mentor_id, title, slug, description, level, topics, created_at")
+    .single();
+  if (error) throw error;
+  return mapCourseRow(inserted as unknown as AnyRow);
+}
+
+async function getCurrentUserEmail(): Promise<string> {
+  const supabase = getSupabase();
+  const { data } = await supabase.auth.getUser();
+  return data.user?.email ?? "";
+}
+
+export async function updateCourseRemote(
+  courseId: number,
+  data: { title: string; description: string; level: Level; topics: string[]; mentorEmail?: string }
+): Promise<Course> {
+  const supabase = getSupabase();
+  const patch: Record<string, unknown> = {
+    title: data.title.trim(),
+    description: data.description.trim(),
+    level: data.level,
+    topics: data.topics,
+  };
+  if (data.mentorEmail) {
+    patch.mentor_id = await getProfileUuidByEmail(data.mentorEmail);
+  }
+  const { data: updated, error } = await supabase
+    .from("courses")
+    .update(patch)
+    .eq("id", courseId)
+    .select("id, mentor_id, title, slug, description, level, topics, created_at")
+    .single();
+  if (error) throw error;
+  return mapCourseRow(updated as unknown as AnyRow);
+}
+
+export async function deleteCourseRemote(courseId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("courses").delete().eq("id", courseId);
+  if (error) throw error;
+}
+
+export async function addLessonRemote(
+  courseId: number,
+  data: { title: string; summary: string; content: string }
+): Promise<Lesson> {
+  const supabase = getSupabase();
+  // Hitung order berikutnya dari lessons course ini.
+  const { data: existing, error: qErr } = await supabase
+    .from("lessons")
+    .select("order")
+    .eq("course_id", courseId);
+  if (qErr) throw qErr;
+  const nextOrder = (existing ?? []).reduce((mx, r) => Math.max(mx, num((r as AnyRow).order)), 0) + 1;
+  const { data: inserted, error } = await supabase
+    .from("lessons")
+    .insert({
+      course_id: courseId,
+      title: data.title.trim(),
+      summary: data.summary.trim(),
+      content: data.content,
+      order: nextOrder,
+    })
+    .select("id, course_id, title, summary, content, order")
+    .single();
+  if (error) throw error;
+  const r = inserted as unknown as AnyRow;
+  return { id: num(r.id), courseId: num(r.course_id), title: str(r.title), summary: str(r.summary), content: str(r.content), order: num(r.order) };
+}
+
+export async function updateLessonRemote(
+  lessonId: number,
+  data: { title: string; summary: string; content: string }
+): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("lessons")
+    .update({ title: data.title.trim(), summary: data.summary.trim(), content: data.content })
+    .eq("id", lessonId);
+  if (error) throw error;
+}
+
+export async function deleteLessonRemote(lessonId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
+  if (error) throw error;
+}
+
+export async function saveQuizRemote(
+  lessonId: number,
+  data: { title: string; questions: Question[] }
+): Promise<void> {
+  const supabase = getSupabase();
+  const { data: existing, error: qErr } = await supabase
+    .from("quizzes")
+    .select("id")
+    .eq("lesson_id", lessonId)
+    .maybeSingle();
+  if (qErr) throw qErr;
+  if (existing) {
+    const { error } = await supabase
+      .from("quizzes")
+      .update({ title: data.title, questions: data.questions })
+      .eq("id", num((existing as AnyRow).id));
+    if (error) throw error;
+    return;
+  }
+  const { error } = await supabase
+    .from("quizzes")
+    .insert({ lesson_id: lessonId, title: data.title, questions: data.questions });
+  if (error) throw error;
+}
+
+export async function deleteQuizRemote(lessonId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("quizzes").delete().eq("lesson_id", lessonId);
+  if (error) throw error;
+}
+
+export async function updateProjectRemote(
+  projectId: number,
+  data: { title: string; description: string; repoUrl: string; tags: string[]; level: Level }
+): Promise<Project> {
+  const supabase = getSupabase();
+  const { data: updated, error } = await supabase
+    .from("projects")
+    .update({
+      title: data.title.trim(),
+      description: data.description.trim(),
+      repo_url: data.repoUrl,
+      tags: data.tags,
+      level: data.level,
+    })
+    .eq("id", projectId)
+    .select("id, user_id, title, description, repo_url, tags, level, created_at, like_count")
+    .single();
+  if (error) throw error;
+  return mapProject(updated as unknown as AnyRow);
+}
+
+export async function deleteProjectRemote(projectId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("projects").delete().eq("id", projectId);
+  if (error) throw error;
+}
+
+export async function deleteProjectCommentRemote(commentId: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("project_comments").delete().eq("id", commentId);
   if (error) throw error;
 }
