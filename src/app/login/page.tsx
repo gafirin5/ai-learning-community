@@ -16,21 +16,18 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    // Simulate a brief auth round-trip.
-    setTimeout(() => {
-      const res = login(email, password);
-      setLoading(false);
-      if (!res.ok) {
-        setError(res.error ?? "Gagal masuk.");
-        return;
-      }
-      toast("Berhasil masuk");
-      router.push("/dashboard");
-    }, 400);
+    const res = await login(email, password);
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error ?? "Gagal masuk.");
+      return;
+    }
+    toast("Berhasil masuk");
+    router.push("/dashboard");
   }
 
   return (

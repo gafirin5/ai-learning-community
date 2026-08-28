@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (password.length < 6) {
       setError("Kata sandi minimal 6 karakter.");
@@ -25,16 +25,14 @@ export default function RegisterPage() {
     }
     setLoading(true);
     setError(null);
-    setTimeout(() => {
-      const res = register({ name, email, password });
-      setLoading(false);
-      if (!res.ok) {
-        setError(res.error ?? "Gagal mendaftar.");
-        return;
-      }
-      toast("Akun berhasil dibuat");
-      router.push("/onboarding");
-    }, 400);
+    const res = await register({ name, email, password });
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error ?? "Gagal mendaftar.");
+      return;
+    }
+    toast(res.needsConfirmation ? "Cek email untuk konfirmasi" : "Akun berhasil dibuat");
+    router.push("/onboarding");
   }
 
   return (

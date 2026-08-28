@@ -26,9 +26,9 @@ interface AuthPayload {
 export interface StoreContextValue {
   state: StoreState;
   currentUser: User | null;
-  login: (email: string, password: string) => { ok: boolean; error?: string };
-  register: (payload: AuthPayload) => { ok: boolean; error?: string };
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  register: (payload: AuthPayload) => Promise<{ ok: boolean; error?: string; needsConfirmation?: boolean }>;
+  logout: () => Promise<void>;
   setInterests: (ids: string[]) => void;
   markLessonDone: (lessonId: number, done: boolean) => void;
   saveQuizScore: (lessonId: number, score: number) => void;
