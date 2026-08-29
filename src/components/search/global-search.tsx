@@ -98,14 +98,14 @@ export function GlobalSearch() {
           setOpen(true);
           setTimeout(() => inputRef.current?.focus(), 0);
         }}
-        className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-subtle transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+        className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-2 text-sm text-subtle transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring xl:px-3"
         aria-label="Cari (Ctrl+K)"
       >
         <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
           <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
         </svg>
         <span className="hidden md:inline">Cari…</span>
-        <kbd className="hidden items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] font-medium text-subtle md:flex">
+        <kbd className="hidden whitespace-nowrap items-center gap-0.5 rounded border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] font-medium text-subtle xl:flex">
           Ctrl K
         </kbd>
       </button>
