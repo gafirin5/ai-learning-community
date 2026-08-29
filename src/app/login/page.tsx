@@ -27,7 +27,12 @@ export default function LoginPage() {
       return;
     }
     toast("Berhasil masuk");
-    router.push("/dashboard");
+    // Hormati ?redirect= bila ada (mis. /login?redirect=/mentor), dengan
+    // guard: hanya path internal relatif untuk mencegah open redirect.
+    const target = new URLSearchParams(window.location.search).get("redirect");
+    const safe =
+      target && target.startsWith("/") && !target.startsWith("//") ? target : "/dashboard";
+    router.push(safe);
   }
 
   return (
