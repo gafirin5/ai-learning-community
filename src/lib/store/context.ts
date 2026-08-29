@@ -92,7 +92,7 @@ export interface StoreContextValue {
   // Gamification
   awardPoints: (amount: number) => void;
   issueCertificate: (courseId: number, courseTitle: string) => Promise<{ ok: boolean; error?: string }>;
-  syncBadges: () => void;
+  syncBadges: () => Promise<string[]>;
   // Mentor Hub (Lane H)
   createBooking: (input: BookingInput) => Promise<void>;
   updateBookingStatus: (sessionId: number, status: BookingStatus) => Promise<void>;

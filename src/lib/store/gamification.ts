@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import type { User } from "@/lib/types";
+import { learningPaths } from "@/lib/data";
+import { coursePercent, pathLessonIds } from "@/lib/learning-path";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { issueCertificateRemote } from "@/lib/api-write";
 import { syncBadgesRemote } from "./gamification-remote";
@@ -44,6 +46,32 @@ export const BADGE_DEFS: Array<{ id: string; label: string; emoji: string; descr
     emoji: "🚀",
     description: "Publish 1 proyek",
     check: (s, uid) => s.projects.some((p) => p.userId === uid),
+  },
+  {
+    // Lab: badge jalur belajar — sengaja hanya 2, mengikuti prinsip
+    // gamifikasi restrained (reward terikat hasil belajar, bukan dekorasi).
+    id: "path-pioneer",
+    label: "Perintis Jalur",
+    emoji: "🗺️",
+    description: "Selesaikan kursus pertama sebuah jalur belajar",
+    check: (s) => {
+      const firstIds = new Set(learningPaths.map((p) => p.courseIds[0]).filter(Boolean));
+      return Array.from(firstIds).some((id) => {
+        const course = s.courses.find((c) => c.id === id);
+        return course ? coursePercent(course, s.progress) === 100 : false;
+      });
+    },
+  },
+  {
+    id: "path-graduate",
+    label: "Lulus Jalur",
+    emoji: "🏆",
+    description: "Selesaikan satu jalur belajar penuh",
+    check: (s) =>
+      learningPaths.some((p) => {
+        const ids = pathLessonIds(p, s.courses);
+        return ids.length > 0 && ids.every((id) => s.progress[id]?.status === "selesai");
+      }),
   },
 ];
 

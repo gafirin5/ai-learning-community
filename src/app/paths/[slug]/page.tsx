@@ -4,27 +4,99 @@
 // mastery gate antar kursus. Progres dihitung dari progress pelajaran existing.
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
 import { learningPathBySlug, LEVEL_BADGE, LEVEL_LABEL } from "@/lib/data";
 import {
+  coursePercent,
   nextPathLesson,
   PATH_MASTERY_THRESHOLD,
   pathCourseStatuses,
   pathIsComplete,
   pathLessonIds,
   pathProgressPercent,
+  resolvePathCourses,
 } from "@/lib/learning-path";
 import { useLabFlag, usePathBypass } from "@/lib/flags";
 import { ProgressBar } from "@/components/progress";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { useToast } from "@/components/toast";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import {
+  claimPathBonusRemote,
+  enrollPathRemote,
+  fetchMyEnrollments,
+  markPathCourseDoneRemote,
+  PATH_BONUS_POINTS,
+  unenrollPathRemote,
+  type PathEnrollmentRow,
+} from "@/lib/store/paths-remote";
 
 export default function PathDetailPage() {
   const params = useParams<{ slug: string }>();
-  const { state } = useStore();
+  const { state, awardPoints, syncBadges } = useStore();
+  const { toast } = useToast();
   const [enabled, , flagReady] = useLabFlag("learning-paths");
   const [bypass, setBypass] = usePathBypass(params.slug);
 
+  const isLoggedIn = state.currentUserId != null;
+  const remoteOn = isSupabaseConfigured();
   const path = learningPathBySlug(params.slug);
+
+  // Enrollment (persist Supabase) — semua hook sebelum early-return agar
+  // tidak melanggar Rules of Hooks.
+  const [enrollment, setEnrollment] = useState<PathEnrollmentRow | null>(null);
+  const [enrollBusy, setEnrollBusy] = useState(false);
+  const [claimBusy, setClaimBusy] = useState(false);
+
+  const loadEnrollment = useCallback(async () => {
+    if (!remoteOn || !isLoggedIn) {
+      setEnrollment(null);
+      return;
+    }
+    try {
+      const rows = await fetchMyEnrollments();
+      setEnrollment(rows.find((r) => r.pathSlug === params.slug) ?? null);
+    } catch (e) {
+      console.warn("[paths] gagal memuat enrollment:", e);
+    }
+  }, [remoteOn, isLoggedIn, params.slug]);
+
+  useEffect(() => {
+    void loadEnrollment();
+  }, [loadEnrollment]);
+
+  // Sinkron kursus yang 100% selesai ke enrollment (idempoten di sisi DB).
+  const doneSlugs = path
+    ? resolvePathCourses(path, state.courses)
+        .filter((c) => coursePercent(c, state.progress) === 100)
+        .map((c) => c.slug)
+        .join(",")
+    : "";
+
+  useEffect(() => {
+    if (!path || !enrollment) return;
+    const missing = doneSlugs
+      .split(",")
+      .filter(Boolean)
+      .filter((s) => !enrollment.completedCourses.includes(s));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      for (const slug of missing) {
+        try {
+          await markPathCourseDoneRemote(path.slug, slug);
+        } catch (e) {
+          console.warn("[paths] gagal menandai kursus jalur:", e);
+          return;
+        }
+      }
+      if (!cancelled) await loadEnrollment();
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [path, enrollment, doneSlugs, loadEnrollment]);
 
   if (!path) {
     return (
@@ -58,6 +130,54 @@ export default function PathDetailPage() {
   const lessonCount = pathLessonIds(path, state.courses).length;
   const next = nextPathLesson(path, state.courses, state.progress, bypass);
   const missingCourses = path.courseIds.length - statuses.length;
+
+  async function handleEnroll() {
+    setEnrollBusy(true);
+    try {
+      await enrollPathRemote(path!.slug, path!.title);
+      toast(`Kamu mengikuti jalur "${path!.title}"!`, "success");
+      await loadEnrollment();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Gagal mengikuti jalur.", "error");
+    } finally {
+      setEnrollBusy(false);
+    }
+  }
+
+  async function handleUnenroll() {
+    setEnrollBusy(true);
+    try {
+      await unenrollPathRemote(path!.slug);
+      toast("Jalur ditinggalkan.", "info");
+      setEnrollment(null);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Gagal meninggalkan jalur.", "error");
+    } finally {
+      setEnrollBusy(false);
+    }
+  }
+
+  async function handleClaimBonus() {
+    setClaimBusy(true);
+    try {
+      const pts = await claimPathBonusRemote(path!.slug, statuses.length);
+      if (pts > 0) {
+        awardPoints(pts);
+        toast(`Bonus kelulusan jalur +${pts} poin!`, "success");
+        const newBadges = await syncBadges();
+        if (newBadges.includes("path-graduate")) {
+          toast("Badge baru: 🏆 Lulus Jalur!", "success");
+        }
+      } else {
+        toast("Bonus jalur ini sudah pernah diklaim.", "info");
+      }
+      await loadEnrollment();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Gagal klaim bonus.", "error");
+    } finally {
+      setClaimBusy(false);
+    }
+  }
 
   return (
     <div className="container-app py-10">
@@ -121,6 +241,69 @@ export default function PathDetailPage() {
               </p>
             )}
           </div>
+
+          {/* Enrollment (persist Supabase) */}
+          {remoteOn ? (
+            isLoggedIn ? (
+              <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-content">
+                    {enrollment ? "✅ Kamu mengikuti jalur ini" : "Ikuti jalur ini"}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {enrollment
+                      ? `${enrollment.completedCourses.length}/${statuses.length} kursus tercatat selesai${enrollment.bonusAwarded ? " · bonus sudah diklaim" : ""}.`
+                      : "Catat progres per kursus & klaim bonus +50 poin saat seluruh kursus selesai."}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {enrollment && complete && !enrollment.bonusAwarded && (
+                    <button
+                      type="button"
+                      onClick={() => void handleClaimBonus()}
+                      disabled={claimBusy}
+                      className="btn-primary"
+                    >
+                      {claimBusy ? "Memproses…" : `🎁 Klaim bonus +${PATH_BONUS_POINTS} poin`}
+                    </button>
+                  )}
+                  {enrollment ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleUnenroll()}
+                      disabled={enrollBusy}
+                      className="btn-secondary text-sm"
+                    >
+                      Tinggalkan
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void handleEnroll()}
+                      disabled={enrollBusy}
+                      className="btn-primary"
+                    >
+                      {enrollBusy ? "Memproses…" : "🗺️ Ikuti Jalur"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="card flex flex-wrap items-center justify-between gap-4 p-5">
+                <p className="text-sm text-muted">
+                  Masuk untuk mengikuti jalur, mencatat progres per kursus, dan mengumpulkan bonus
+                  kelulusan.
+                </p>
+                <Link href={`/login?redirect=/paths/${path.slug}`} className="btn-primary shrink-0">
+                  Masuk untuk ikuti jalur
+                </Link>
+              </div>
+            )
+          ) : (
+            <div className="card p-5 text-sm text-muted">
+              Mode offline — pendaftaran jalur tersedia saat backend aktif.
+            </div>
+          )}
 
           {/* Mode bebas (bypass mastery gate) */}
           {!complete && (
