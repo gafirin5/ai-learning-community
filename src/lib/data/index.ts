@@ -5,3 +5,4 @@ export { forumCategories, reportReasons, forumThreads, forumComments, categoryBy
 export { projects, projectComments } from "./projects";
 export { interests, LEVEL_LABEL, LEVEL_BADGE } from "./interests";
 export { learningPaths, learningPathBySlug } from "./learning-paths";
+export { flashcards, flashcardById } from "./flashcards";
