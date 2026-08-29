@@ -99,11 +99,12 @@ begin
   where cq.user_id = p_user_id
     and cq.reset_date = current_date;
 
+  -- user tanpa row chat_quota => v_usage null (select into kosong) => anggap 0
   return query
   select
-    v_usage < p_daily_limit,
-    greatest(0, p_daily_limit - v_usage)::integer,
-    v_usage::integer;
+    coalesce(v_usage, 0) < p_daily_limit,
+    greatest(0, p_daily_limit - coalesce(v_usage, 0))::integer,
+    coalesce(v_usage, 0)::integer;
 end;
 $$;
 
