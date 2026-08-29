@@ -9,3 +9,4 @@ export type { Interest } from "./interest";
 export type { StoreState } from "./store";
 export type { AppNotification, NotificationType } from "./notification";
 export type { Badge, Certificate } from "./gamification";
+export type { LearningPath } from "./learning-path";

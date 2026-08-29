@@ -77,6 +77,63 @@ export function setLabFlag(id: LabFeatureId, enabled: boolean): void {
   }
 }
 
+// Mode bebas jalur (bypass mastery gate) — disimpan per slug, model hybrid
+// hasil riset desain learning path (gate ketat bikin fast-learner frustrasi).
+const BYPASS_KEY = "aic-path-bypass-v1";
+const BYPASS_EVENT = "aic-path-bypass-change";
+
+export function readPathBypasses(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(BYPASS_KEY) ?? "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((s): s is string => typeof s === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setPathBypass(slug: string, on: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    const set = new Set(readPathBypasses());
+    if (on) set.add(slug);
+    else set.delete(slug);
+    window.localStorage.setItem(BYPASS_KEY, JSON.stringify(Array.from(set)));
+    window.dispatchEvent(new CustomEvent(BYPASS_EVENT));
+  } catch {
+    // abaikan — mode bebas tetap efektif di sesi memori via state hook.
+  }
+}
+
+export function usePathBypass(slug: string): [boolean, (on: boolean) => void, boolean] {
+  const [on, setOnState] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setOnState(readPathBypasses().includes(slug));
+    setReady(true);
+    const onChange = () => setOnState(readPathBypasses().includes(slug));
+    window.addEventListener(BYPASS_EVENT, onChange);
+    window.addEventListener("storage", onChange);
+    return () => {
+      window.removeEventListener(BYPASS_EVENT, onChange);
+      window.removeEventListener("storage", onChange);
+    };
+  }, [slug]);
+
+  const setOn = useCallback(
+    (next: boolean) => {
+      setPathBypass(slug, next);
+      setOnState(next);
+    },
+    [slug]
+  );
+
+  return [on, setOn, ready];
+}
+
 /**
  * Hook client: baca flag setelah mount (aman hydration), subscribe perubahan
  * lintas komponen/tab. `ready` false saat SSR & frame pertama — pakai untuk

@@ -4,3 +4,4 @@ export { lessons, quizzes, courses, quizByLesson, lessonById, courseById } from 
 export { forumCategories, reportReasons, forumThreads, forumComments, categoryById } from "./forum";
 export { projects, projectComments } from "./projects";
 export { interests, LEVEL_LABEL, LEVEL_BADGE } from "./interests";
+export { learningPaths, learningPathBySlug } from "./learning-paths";

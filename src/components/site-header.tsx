@@ -11,6 +11,7 @@ import { NotificationsBell } from "@/components/notifications-bell";
 
 const NAV = [
   { href: "/courses", label: "Kursus" },
+  { href: "/paths", label: "Jalur" },
   { href: "/forum", label: "Forum" },
   { href: "/projects", label: "Proyek" },
   { href: "/mentor", label: "Mentor" },
