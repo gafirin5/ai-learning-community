@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { EmptyState, LevelBadge } from "@/components/ui";
 import { useToast } from "@/components/toast";
-import type { Level, Question } from "@/lib/types";
+import { MarkdownEditor } from "@/components/admin/markdown-editor";
+import { QuizEditor } from "@/components/admin/quiz-editor";
+import type { Level } from "@/lib/types";
 
 const LEVELS: Array<{ value: Level; label: string }> = [
   { value: "pemula", label: "Pemula" },
@@ -99,7 +101,7 @@ export function Courses() {
           </div>
           <div className="sm:col-span-2">
             <label className="label">Deskripsi</label>
-            <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi singkat" />
+            <MarkdownEditor rows={3} value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder="Deskripsi singkat" />
           </div>
           <div>
             <label className="label">Level</label>
@@ -229,7 +231,7 @@ function CourseLessons({ courseId }: { courseId: number }) {
         </h4>
         <input className="input" value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} placeholder="Judul pelajaran" />
         <input className="input" value={lessonForm.summary} onChange={(e) => setLessonForm({ ...lessonForm, summary: e.target.value })} placeholder="Ringkasan singkat" />
-        <textarea className="input" rows={4} value={lessonForm.content} onChange={(e) => setLessonForm({ ...lessonForm, content: e.target.value })} placeholder="Isi materi (Markdown)" />
+        <MarkdownEditor rows={12} value={lessonForm.content} onChange={(v) => setLessonForm({ ...lessonForm, content: v })} placeholder="Isi materi (Markdown)" />
         <div className="flex gap-2">
           <button type="submit" className="btn-primary">
             {editingLessonId != null ? "Simpan" : "Tambah"}
@@ -267,7 +269,7 @@ function CourseLessons({ courseId }: { courseId: number }) {
                 </button>
               </div>
             </div>
-            {quizLessonId === lesson.id && <QuizEditor lessonId={lesson.id} onClose={() => setQuizLessonId(null)} />}
+            {quizLessonId === lesson.id && <LessonQuizPanel lessonId={lesson.id} onClose={() => setQuizLessonId(null)} />}
           </div>
         ))}
         {lessons.length === 0 && <p className="text-sm text-muted">Belum ada pelajaran.</p>}
@@ -276,102 +278,25 @@ function CourseLessons({ courseId }: { courseId: number }) {
   );
 }
 
-function QuizEditor({ lessonId, onClose }: { lessonId: number; onClose: () => void }) {
+function LessonQuizPanel({ lessonId, onClose }: { lessonId: number; onClose: () => void }) {
   const { state, saveQuiz, deleteQuiz } = useStore();
   const { toast } = useToast();
   const existing = state.quizzes.find((q) => q.lessonId === lessonId);
-  const [title, setTitle] = useState(existing?.title ?? "");
-  const [questions, setQuestions] = useState<Question[]>(existing?.questions ?? []);
-
-  function updateQuestion(idx: number, patch: Partial<Question>) {
-    setQuestions((qs) => qs.map((q, i) => (i === idx ? { ...q, ...patch } : q)));
-  }
-
-  function addQuestion() {
-    setQuestions((qs) => [
-      ...qs,
-      { id: Date.now(), text: "", options: ["", "", "", ""], correctIndex: 0, explanation: "" },
-    ]);
-  }
-
-  function removeQuestion(idx: number) {
-    setQuestions((qs) => qs.filter((_, i) => i !== idx));
-  }
-
-  function handleSave() {
-    if (!title.trim()) {
-      toast("Judul kuis wajib diisi", "error");
-      return;
-    }
-    saveQuiz(lessonId, { title, questions });
-    toast("Kuis disimpan");
-    onClose();
-  }
-
-  function handleDeleteQuiz() {
-    if (!window.confirm("Hapus kuis untuk pelajaran ini?")) return;
-    deleteQuiz(lessonId);
-    toast("Kuis dihapus");
-    onClose();
-  }
-
   return (
-    <div className="mt-3 space-y-3 rounded-lg border border-border bg-surface p-3">
-      <div className="flex items-center gap-2">
-        <h5 className="font-semibold text-content">Kuis</h5>
-        <button onClick={onClose} className="btn-ghost ml-auto px-2 py-1 text-xs">
-          Tutup
-        </button>
-      </div>
-      <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul kuis" />
-      {questions.map((q, qi) => (
-        <div key={qi} className="space-y-2 rounded-lg border border-border p-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted">Soal {qi + 1}</span>
-            <button onClick={() => removeQuestion(qi)} className="btn-ghost ml-auto px-2 py-1 text-xs text-danger hover:bg-danger-soft">
-              Hapus soal
-            </button>
-          </div>
-          <input className="input" value={q.text} onChange={(e) => updateQuestion(qi, { text: e.target.value })} placeholder="Pertanyaan" />
-          <div className="space-y-1.5">
-            {q.options.map((opt, oi) => (
-              <div key={oi} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name={`correct-${lessonId}-${qi}`}
-                  checked={q.correctIndex === oi}
-                  onChange={() => updateQuestion(qi, { correctIndex: oi })}
-                  aria-label={`Jawaban benar ${oi + 1}`}
-                />
-                <input
-                  className="input"
-                  value={opt}
-                  onChange={(e) => {
-                    const options = [...q.options];
-                    options[oi] = e.target.value;
-                    updateQuestion(qi, { options });
-                  }}
-                  placeholder={`Opsi ${oi + 1}`}
-                />
-              </div>
-            ))}
-          </div>
-          <input className="input" value={q.explanation} onChange={(e) => updateQuestion(qi, { explanation: e.target.value })} placeholder="Pembahasan" />
-        </div>
-      ))}
-      <div className="flex flex-wrap gap-2">
-        <button onClick={addQuestion} className="btn-secondary">
-          + Soal
-        </button>
-        <button onClick={handleSave} className="btn-primary">
-          Simpan Kuis
-        </button>
-        {existing && (
-          <button onClick={handleDeleteQuiz} className="btn-danger">
-            Hapus Kuis
-          </button>
-        )}
-      </div>
-    </div>
+    <QuizEditor
+      lessonId={lessonId}
+      initialTitle={existing?.title ?? ""}
+      initialQuestions={existing?.questions ?? []}
+      hasExisting={existing != null}
+      onSave={async (data) => {
+        await saveQuiz(lessonId, data);
+        toast("Kuis disimpan");
+      }}
+      onDelete={async () => {
+        await deleteQuiz(lessonId);
+        toast("Kuis dihapus");
+      }}
+      onClose={onClose}
+    />
   );
 }

@@ -50,6 +50,8 @@ export interface UserState {
   certificates: Certificate[];
   points: number;
   streak: number;
+  /** Badge milik user dari tabel `badges` (RLS owner-only). id = badge_id. */
+  badges: Array<{ id: string; earnedAt: string }>;
   myReactions: {
     threads: Record<number, ReactionKey | null>;
     comments: Record<number, ReactionKey | null>;
@@ -320,6 +322,7 @@ export async function fetchUserState(): Promise<UserState | null> {
     projectVoteRows,
     notificationRows,
     certRows,
+    badgeRows,
     statsRows,
     myReactionRows,
     reportRows,
@@ -338,6 +341,8 @@ export async function fetchUserState(): Promise<UserState | null> {
       r.sort((a, b) => str(b.created_at).localeCompare(str(a.created_at)))
     ),
     selectAll("certificates", "id, course_id, course_title, issued_at"),
+    // Gamifikasi (Lane F) — badge milik sendiri (RLS "badges owner").
+    selectAll("badges", "badge_id, earned_at"),
     selectAll("user_stats", "points, streak"),
     selectAll("reactions", "target_type, target_id, reaction_key"),
     selectAll("reports", "id, target_type, target_id, reporter_id, reason, status, created_at").then((r) =>
@@ -425,6 +430,7 @@ export async function fetchUserState(): Promise<UserState | null> {
     certificates,
     points: statsRows.length ? num(statsRows[0].points) : 0,
     streak: statsRows.length ? num(statsRows[0].streak) : 0,
+    badges: badgeRows.map((r) => ({ id: str(r.badge_id), earnedAt: str(r.earned_at) })),
     myReactions,
     reports,
     mentoringSessions: mentoringSessionRows.map(mapBookingSessionRow),

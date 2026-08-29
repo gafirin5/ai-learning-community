@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { User } from "@/lib/types";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { issueCertificateRemote } from "@/lib/api-write";
+import { syncBadgesRemote } from "./gamification-remote";
 import type { StateSetter, StoreState } from "./context";
 
 export const BADGE_DEFS: Array<{ id: string; label: string; emoji: string; description: string; check: (s: StoreState, userId: number) => boolean }> = [
@@ -80,13 +81,26 @@ export function useGamificationActions(state: StoreState, setState: StateSetter)
     [state.currentUserId, state.certificates, setState]
   );
 
-  const syncBadges = useCallback(() => {
-    if (!state.currentUserId) return;
+  // Signature lama dipertahankan (dipakai via StoreContextValue). Return:
+  // Promise berisi daftar badgeId yang BARU diraih pada sync ini — bisa dipakai
+  // pemanggil untuk notifikasi toast. Badge baru juga dipersist ke tabel
+  // `badges` di Supabase (diam-diam bila offline / belum login).
+  const syncBadges = useCallback(async (): Promise<string[]> => {
+    if (!state.currentUserId) return [];
     const uid = state.currentUserId;
     const earned = BADGE_DEFS.filter((b) => b.check(state, uid)).map((b) => b.id);
     const newOnes = earned.filter((id) => !state.badges.includes(id));
-    if (newOnes.length === 0) return;
+    if (newOnes.length === 0) return [];
     setState((s) => ({ ...s, badges: Array.from(new Set([...s.badges, ...newOnes])) }));
+    try {
+      await syncBadgesRemote(
+        newOnes.map((id) => ({ badgeId: id, earnedAt: new Date().toISOString() }))
+      );
+    } catch (err) {
+      // Kegagalan persist tidak boleh mengganggu UI — badge tetap ada di state lokal.
+      console.error("[gamification] gagal persist badge:", err);
+    }
+    return newOnes;
   }, [state, setState]);
 
   return { awardPoints, issueCertificate, syncBadges };
@@ -103,7 +117,10 @@ const COMMUNITY_POINTS = {
   likeReceived: 3,
 };
 
-function communityScore(state: StoreState, userId: number): { posts: number; points: number } {
+function communityScore(
+  state: StoreState,
+  userId: number
+): { threads: number; comments: number; projects: number; posts: number; points: number } {
   const threads = state.threads.filter((t) => t.userId === userId && !t.hidden);
   const comments = state.comments.filter((c) => c.userId === userId && !c.hidden);
   const projects = state.projects.filter((p) => p.userId === userId);
@@ -115,7 +132,13 @@ function communityScore(state: StoreState, userId: number): { posts: number; poi
     projects.length * COMMUNITY_POINTS.project +
     votesReceived * COMMUNITY_POINTS.voteReceived +
     likesReceived * COMMUNITY_POINTS.likeReceived;
-  return { posts: threads.length + comments.length + projects.length, points };
+  return {
+    threads: threads.length,
+    comments: comments.length,
+    projects: projects.length,
+    posts: threads.length + comments.length + projects.length,
+    points,
+  };
 }
 
 export interface LeaderboardRow {
@@ -125,11 +148,17 @@ export interface LeaderboardRow {
   learningPoints: number;
   communityPoints: number;
   isYou: boolean;
+  /** Streak belajar (mode lokal: hanya diketahui untuk current user). */
+  streak?: number;
+  /** Rincian kontribusi thread/komentar/proyek. */
+  breakdown?: { threads: number; comments: number; projects: number };
 }
 
+// Fallback offline (state lokal) — halaman leaderboard memakai
+// fetchLeaderboardRemote() bila Supabase aktif.
 export function getLeaderboard(state: StoreState): LeaderboardRow[] {
   const rows = state.users.map((u) => {
-    const { posts, points } = communityScore(state, u.id);
+    const { threads, comments, projects, posts, points } = communityScore(state, u.id);
     const isYou = u.id === state.currentUserId;
     // Poin belajar (state.points) hanya tersimpan untuk current user pada
     // frontend-only single-session; user lain hanya punya poin kontribusi.
@@ -141,6 +170,8 @@ export function getLeaderboard(state: StoreState): LeaderboardRow[] {
       learningPoints,
       communityPoints: points,
       isYou,
+      streak: isYou ? state.activity.streak : undefined,
+      breakdown: { threads, comments, projects },
     };
   });
   return rows

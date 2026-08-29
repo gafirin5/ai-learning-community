@@ -77,6 +77,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           mentoringSessions: us.mentoringSessions,
           mentorReviews: us.mentorReviews,
           mentorAvailability: us.mentorAvailability,
+          // union badge lokal (hasil syncBadges sesi ini) + badge tersimpan di DB,
+          // supaya badge tidak "hilang" sebelum syncBadges berikutnya jalan.
+          badges: Array.from(new Set([...(s.badges ?? []), ...us.badges.map((b) => b.id)])),
         }));
       })
       .catch(() => {

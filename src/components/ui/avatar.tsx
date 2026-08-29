@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 const PALETTE = [
   "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300",
   "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300",
@@ -17,13 +19,19 @@ function pickColor(name: string): string {
 
 export function Avatar({
   name,
+  src,
   size = "md",
   className = "",
 }: {
   name: string;
+  /** URL foto profil opsional — bila gagal dimuat otomatis fallback ke inisial. */
+  src?: string;
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = Boolean(src) && !imgFailed;
+
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -33,6 +41,18 @@ export function Avatar({
 
   const sizeCls =
     size === "sm" ? "h-6 w-6 text-[10px]" : size === "lg" ? "h-12 w-12 text-base" : "h-8 w-8 text-xs";
+
+  if (showImage) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- avatarUrl bebas domain; next/image butuh konfigurasi remotePatterns
+      <img
+        src={src}
+        alt={name}
+        onError={() => setImgFailed(true)}
+        className={`inline-block shrink-0 rounded-full object-cover ${sizeCls} ${className}`}
+      />
+    );
+  }
 
   return (
     <span
