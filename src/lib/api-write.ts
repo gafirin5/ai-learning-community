@@ -357,6 +357,27 @@ export async function deleteNotificationRemote(id: number): Promise<void> {
   if (error) throw error;
 }
 
+export async function createNotificationRemote(input: {
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  href?: string;
+}): Promise<void> {
+  // RPC SECURITY DEFINER create_notification — butuh klien supabase biasa
+  // (getSupabase()) dengan session user (grant ke role authenticated),
+  // bukan service role.
+  const supabase = getSupabase();
+  const { error } = await supabase.rpc("create_notification", {
+    p_user_id: input.userId,
+    p_type: input.type,
+    p_title: input.title,
+    p_body: input.body,
+    p_href: input.href ?? null,
+  });
+  if (error) throw error;
+}
+
 // ---- Forum moderation (thread/comment edit, delete, pin, hide, accept) ----
 
 const THREAD_SELECT =

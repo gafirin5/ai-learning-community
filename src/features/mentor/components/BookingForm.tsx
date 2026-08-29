@@ -1,18 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { MentorProfile, BookingSession } from '../types';
 
 interface BookingFormProps {
   mentor: MentorProfile;
+  /** Slot tersedia dari RPC get_available_slots (boleh kosong → fallback hardcoded). */
+  availableSlots?: { scheduledAt: Date }[];
+  /** Daftar kursus untuk step 2 (dari state.courses). */
+  courses?: { id: number; title: string }[];
   onSubmit?: (booking: Partial<BookingSession>) => Promise<void>;
   onCancel?: () => void;
 }
 
-export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
+const FALLBACK_SLOTS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+
+/** Kunci tanggal lokal 'YYYY-MM-DD' (hindari toISOString yang bergeser zona). */
+function dateKey(d: Date): string {
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+function hhmm(d: Date): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+export function BookingForm({ mentor, availableSlots, courses = [], onSubmit, onCancel }: BookingFormProps) {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     date: '',
     time: '',
@@ -21,8 +38,25 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [field]: value };
+      // Ganti tanggal → reset jam yang mungkin tidak ada di slot tanggal baru.
+      if (field === 'date' && value !== prev.date) next.time = '';
+      return next;
+    });
   };
+
+  // Jam unik dari slot yang cocok dengan tanggal terpilih; fallback hardcoded
+  // bila slot kosong / Supabase tidak tersedia.
+  const availableTimeSlots = useMemo(() => {
+    if (!formData.date || !availableSlots || availableSlots.length === 0) return FALLBACK_SLOTS;
+    const times = availableSlots
+      .map((s) => new Date(s.scheduledAt))
+      .filter((d) => dateKey(d) === formData.date)
+      .map(hhmm);
+    const unique = Array.from(new Set(times)).sort();
+    return unique.length > 0 ? unique : FALLBACK_SLOTS;
+  }, [availableSlots, formData.date]);
 
   const validateStep = (currentStep: number): boolean => {
     switch (currentStep) {
@@ -46,40 +80,31 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
     setStep(prev => prev - 1);
   };
 
+  // Tidak ada alert() di sini — sukses/gagal ditangani pemanggil via onSubmit
+  // (halaman mentor menampilkan toast). Error sengaja dibiarkan naik.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateStep(step)) return;
 
     try {
       setIsLoading(true);
-      
+
       const bookingData: Partial<BookingSession> = {
         mentorUuid: mentor.uuid,
         scheduledAt: new Date(`${formData.date}T${formData.time}`),
-        courseId: formData.courseId ? parseInt(formData.courseId) : undefined,
+        courseId: formData.courseId ? parseInt(formData.courseId, 10) : undefined,
         notes: formData.notes || undefined,
         status: 'pending' as const,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 
       await onSubmit?.(bookingData);
-      
-      // Success handling - could show toast or redirect
-      alert('Booking request submitted! The mentor will review and confirm.');
       onCancel?.();
-      
-    } catch (error) {
-      console.error('Booking error:', error);
-      alert('Failed to submit booking. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
-  const availableTimeSlots = [
-    '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'
-  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -87,7 +112,7 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
         {/* Header */}
         <div className="bg-blue-600 text-white px-6 py-4">
           <h3 className="text-xl font-bold">Book Session with {mentor.name.split(' ')[0]}</h3>
-          
+
           {/* Progress Indicator */}
           <div className="flex items-center mt-3">
             {[1, 2, 3].map(s => (
@@ -106,14 +131,14 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
         {/* Form Content */}
         <form onSubmit={handleSubmit}>
           <div className="p-6">
-            
+
             {/* Step 1: Date & Time */}
             {step === 1 && (
               <div className="space-y-4">
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                   When would you like to meet?
                 </h4>
-                
+
                 {/* Date Picker */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -161,7 +186,7 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Related Course (Optional)
                 </h4>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select a course this session relates to
@@ -172,9 +197,11 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="">No specific course</option>
-                    <option value="1">Machine Learning Basics</option>
-                    <option value="2">Deep Learning Fundamentals</option>
-                    <option value="3">AI Ethics & Society</option>
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -186,7 +213,7 @@ export function BookingForm({ mentor, onSubmit, onCancel }: BookingFormProps) {
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Additional Details
                 </h4>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     What would you like to discuss? (Optional)

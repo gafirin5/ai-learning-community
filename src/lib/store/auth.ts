@@ -46,10 +46,15 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
           const existing = s.users.find((u) => u.email.toLowerCase() === profileEmail);
           const user: User = {
             id: mappedId,
+            uuid: supabaseUser!.id,
             name: metaName || existing?.name || profileEmail.split("@")[0],
             email: profileEmail,
             role: metaRole === "guest" ? (existing?.role ?? "learner") : metaRole,
             joinedAt: existing?.joinedAt ?? todayKey(),
+            expertise: existing?.expertise ?? [],
+            bio: existing?.bio ?? "",
+            avatarUrl: existing?.avatarUrl ?? "",
+            maxSessionsPerWeek: existing?.maxSessionsPerWeek ?? 10,
           };
           return {
             ...s,
@@ -97,10 +102,15 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
         const mappedId = uuidToNumber(supabaseUser!.id);
         const newUser: User = {
           id: mappedId,
+          uuid: supabaseUser!.id,
           name: payload.name.trim(),
           email,
           role: payload.role ?? "learner",
           joinedAt: todayKey(),
+          expertise: [],
+          bio: "",
+          avatarUrl: "",
+          maxSessionsPerWeek: 10,
         };
         setState((s) => ({
           ...s,
@@ -115,10 +125,15 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
         return { ok: false, error: "Email sudah terdaftar." };
       const newUser: User = {
         id: Date.now(),
+        uuid: `local-${Date.now()}`,
         name: payload.name.trim(),
         email,
         role: payload.role ?? "learner",
         joinedAt: todayKey(),
+        expertise: [],
+        bio: "",
+        avatarUrl: "",
+        maxSessionsPerWeek: 10,
       };
       setState((s) => ({ ...s, users: [...s.users, newUser], currentUserId: newUser.id }));
       return { ok: true };
@@ -153,6 +168,9 @@ export function useAuthActions(state: StoreState, setState: StateSetter) {
       activity: { streak: 0, lastActiveDate: "" },
       chat: {},
       chatQuota: { date: "", used: 0 },
+      mentoringSessions: [],
+      mentorReviews: [],
+      mentorAvailability: [],
     }));
   }, [setState]);
 

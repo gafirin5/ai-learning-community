@@ -13,6 +13,7 @@ import { useProjectsActions } from "./projects";
 import { useAdminActions } from "./admin";
 import { useNotificationActions } from "./notifications";
 import { useGamificationActions } from "./gamification";
+import { useMentorActions } from "@/features/mentor/store/actions";
 import { fetchRemoteState, fetchUserState } from "@/lib/api";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -73,6 +74,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           activity: { streak: us.streak, lastActiveDate: s.activity.lastActiveDate },
           myReactions: us.myReactions,
           reports: us.reports,
+          mentoringSessions: us.mentoringSessions,
+          mentorReviews: us.mentorReviews,
+          mentorAvailability: us.mentorAvailability,
         }));
       })
       .catch(() => {
@@ -105,6 +109,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const admin = useAdminActions(state, setState);
   const notifications = useNotificationActions(setState);
   const gamification = useGamificationActions(state, setState);
+  const mentor = useMentorActions(state, setState);
 
   const value: StoreContextValue = {
     state,
@@ -117,6 +122,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ...admin,
     ...notifications,
     ...gamification,
+    ...mentor,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

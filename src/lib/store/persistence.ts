@@ -1,4 +1,5 @@
 import type { StoreState } from "@/lib/types";
+import type { BookingSession, Review } from "@/features/mentor/types";
 import {
   forumComments as seedComments,
   forumThreads as seedThreads,
@@ -8,6 +9,21 @@ import {
 import { initialState } from "./initial";
 
 export const STORAGE_KEY = "aic-store-v1";
+
+// Tanggal di BookingSession/Review tersimpan sebagai string di localStorage —
+// hidupkan kembali menjadi Date agar konsisten dengan kontrak tipe.
+function toDate(v: unknown): Date {
+  const d = v instanceof Date ? v : new Date(typeof v === "string" || typeof v === "number" ? v : 0);
+  return Number.isNaN(d.getTime()) ? new Date(0) : d;
+}
+
+function reviveSession(s: BookingSession): BookingSession {
+  return { ...s, scheduledAt: toDate(s.scheduledAt), createdAt: toDate(s.createdAt), updatedAt: toDate(s.updatedAt) };
+}
+
+function reviveReview(r: Review): Review {
+  return { ...r, createdAt: toDate(r.createdAt) };
+}
 
 export function loadState(): StoreState {
   if (typeof window === "undefined") return initialState;
@@ -42,6 +58,11 @@ export function loadState(): StoreState {
       certificates: Array.isArray(parsed.certificates) ? parsed.certificates : [],
       points: typeof parsed.points === "number" ? parsed.points : 0,
       badges: Array.isArray(parsed.badges) ? parsed.badges : [],
+      mentoringSessions: Array.isArray(parsed.mentoringSessions)
+        ? parsed.mentoringSessions.map(reviveSession)
+        : [],
+      mentorReviews: Array.isArray(parsed.mentorReviews) ? parsed.mentorReviews.map(reviveReview) : [],
+      mentorAvailability: Array.isArray(parsed.mentorAvailability) ? parsed.mentorAvailability : [],
     };
   } catch {
     return initialState;

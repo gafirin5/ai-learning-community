@@ -1,141 +1,166 @@
 /**
- * Mentor Hub Feature - Store Actions & Hooks
- * 
+ * Mentor Hub — Store Actions (hooks)
+ *
  * Owner: Lane H (Mentor Hub)
- * Status: Draft 🚧
- * Last Updated: 2026-08-28
+ *
+ * Semua action dibungkus hook `useMentorActions(state, setState)` — dipanggil
+ * dari StoreProvider dan di-spread ke context. JANGAN mengeksekusi hook di
+ * module scope (pola lama berupa objek aksi module-scope melanggar
+ * rules-of-hooks — sudah dihapus).
+ *
+ * Konvensi repo: remote-first dengan fallback localStorage.
  */
 
-import { useStore } from '@/lib/store/context';
+import { useCallback } from "react";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
+import type { StateSetter, StoreState } from "@/lib/store/context";
+import {
+  createBookingRemote,
+  fetchMySessionsRemote,
+  fetchReviewsRemote,
+  saveAvailabilityRemote,
+  submitReviewRemote,
+  updateBookingStatusRemote,
+} from "../api";
 import type {
-  MentorProfile,
-  BookingSession,
-  Review,
-  MentorFilterParams,
   AvailableSlot,
-} from '../types';
+  BookingInput,
+  BookingSession,
+  BookingStatus,
+  Review,
+  ReviewInput,
+  ScheduleRange,
+} from "../types";
 
-/**
- * Get mentors matching specified expertise and availability criteria
- */
-export function useFindMentors() {
-  const state = useStore();
+type Row = { [key: string]: unknown };
 
-  return async (params: MentorFilterParams): Promise<MentorProfile[]> => {
-    // TODO: Implement Supabase query
-    // await supabase.from('profiles')
-    //   .select('*')
-    //   .eq('role', 'mentor')
-    //   .filter('expertise', 'csn', params.expertise || [])
-    
-    // For now, return empty array as placeholder
-    return [];
-  };
+function str(v: unknown, fallback = ""): string {
+  return typeof v === "string" ? v : fallback;
+}
+function num(v: unknown, fallback = 0): number {
+  return typeof v === "number" ? v : fallback;
 }
 
-/**
- * Create a new booking session request
- */
-export function useCreateBooking() {
-  const state = useStore();
-
-  return async (booking: Partial<BookingSession>): Promise<BookingSession> => {
-    // TODO: Implement Supabase insert via RPC
-    // await supabase.rpc('create_mentoring_session', {
-    //   mentor_id: booking.mentorUuid,
-    //   learner_id: booking.learnerUuid,
-    //   scheduled_at: booking.scheduledAt,
-    //   course_id: booking.courseId,
-    // })
-    
-    throw new Error('Not implemented');
-  };
+/** Format Date → 'YYYY-MM-DD' (parameter tipe date di RPC get_available_slots). */
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
 }
 
-/**
- * Update booking session status (confirm/cancel)
- */
-export function useUpdateBookingStatus() {
-  const state = useStore();
+export function useMentorActions(state: StoreState, setState: StateSetter) {
+  const refreshMentorSessions = useCallback(async () => {
+    if (!isSupabaseConfigured()) return; // fallback lokal: no-op
+    const [sessions, reviews] = await Promise.all([fetchMySessionsRemote(), fetchReviewsRemote()]);
+    setState((s) => ({ ...s, mentoringSessions: sessions, mentorReviews: reviews }));
+  }, [setState]);
 
-  return async (
-    sessionId: string,
-    status: BookingSession['status']
-  ): Promise<void> => {
-    // TODO: Implement Supabase update
-    // await supabase.rpc('update_booking_status', {
-    //   session_id: sessionId,
-    //   new_status: status,
-    // })
-    
-    throw new Error('Not implemented');
+  const createBooking = useCallback(
+    async (input: BookingInput) => {
+      if (isSupabaseConfigured()) {
+        await createBookingRemote(input.mentorUuid, input.scheduledAtIso, input.courseId, input.notes);
+        await refreshMentorSessions();
+        return;
+      }
+      // Fallback lokal: prepend pseudo BookingSession.
+      const me = state.users.find((u) => u.id === state.currentUserId);
+      const pseudo: BookingSession = {
+        id: Date.now(),
+        mentorUuid: input.mentorUuid,
+        learnerUuid: me?.uuid ?? "",
+        courseId: input.courseId,
+        scheduledAt: new Date(input.scheduledAtIso),
+        status: "pending",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        notes: input.notes,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      setState((s) => ({ ...s, mentoringSessions: [pseudo, ...s.mentoringSessions] }));
+    },
+    [state.users, state.currentUserId, refreshMentorSessions, setState]
+  );
+
+  const updateBookingStatus = useCallback(
+    async (sessionId: number, status: BookingStatus) => {
+      if (isSupabaseConfigured()) {
+        await updateBookingStatusRemote(sessionId, status);
+        await refreshMentorSessions();
+        return;
+      }
+      setState((s) => ({
+        ...s,
+        mentoringSessions: s.mentoringSessions.map((b) =>
+          b.id === sessionId ? { ...b, status, updatedAt: new Date() } : b
+        ),
+      }));
+    },
+    [refreshMentorSessions, setState]
+  );
+
+  const submitReview = useCallback(
+    async (input: ReviewInput) => {
+      if (isSupabaseConfigured()) {
+        await submitReviewRemote(
+          input.sessionId,
+          input.ratedUserUuid,
+          input.rating,
+          input.comment,
+          input.isPublic ?? true
+        );
+        await refreshMentorSessions();
+        return;
+      }
+      const me = state.users.find((u) => u.id === state.currentUserId);
+      const review: Review = {
+        id: Date.now(),
+        sessionId: input.sessionId,
+        reviewerId: me?.uuid ?? "",
+        ratedUserUuid: input.ratedUserUuid,
+        rating: input.rating,
+        comment: input.comment,
+        isPublic: input.isPublic ?? true,
+        createdAt: new Date(),
+      };
+      setState((s) => ({ ...s, mentorReviews: [review, ...s.mentorReviews] }));
+    },
+    [state.users, state.currentUserId, refreshMentorSessions, setState]
+  );
+
+  const saveAvailability = useCallback(
+    async (slots: ScheduleRange[]) => {
+      if (isSupabaseConfigured()) await saveAvailabilityRemote(slots);
+      setState((s) => ({ ...s, mentorAvailability: slots }));
+    },
+    [setState]
+  );
+
+  const getAvailableSlots = useCallback(
+    async (mentorUuid: string, startDate: Date, endDate: Date): Promise<AvailableSlot[]> => {
+      if (!isSupabaseConfigured()) return [];
+      const supabase = getSupabase();
+      const { data, error } = await supabase.rpc("get_available_slots", {
+        p_mentor_id: mentorUuid,
+        p_start_date: toDateKey(startDate),
+        p_end_date: toDateKey(endDate),
+      });
+      if (error) throw error;
+      return ((data ?? []) as unknown as Row[]).map((r) => ({
+        slotId: num(r.slot_id),
+        mentorName: str(r.mentor_name),
+        scheduledAt: new Date(str(r.scheduled_at)),
+        status: str(r.status),
+      }));
+    },
+    []
+  );
+
+  return {
+    createBooking,
+    updateBookingStatus,
+    submitReview,
+    saveAvailability,
+    refreshMentorSessions,
+    getAvailableSlots,
   };
 }
-
-/**
- * Submit review for completed mentoring session
- */
-export function useSubmitReview() {
-  const state = useStore();
-
-  return async (review: Omit<Review, 'id' | 'createdAt'>): Promise<Review> => {
-    // TODO: Implement Supabase insert
-    // await supabase.rpc('submit_mentor_review', {
-    //   session_id: review.sessionId,
-    //   reviewer_id: review.reviewerId,
-    //   rated_user_uuid: review.ratedUserUuid,
-    //   rating: review.rating,
-    //   comment: review.comment,
-    //   is_public: review.isPublic,
-    // })
-    
-    throw new Error('Not implemented');
-  };
-}
-
-/**
- * Get upcoming/past mentoring sessions for current user
- */
-export function useGetMySessions() {
-  const state = useStore();
-
-  return async (
-    userId: string,
-    filter: 'upcoming' | 'past'
-  ): Promise<BookingSession[]> => {
-    // TODO: Implement Supabase query
-    // const dateFilter = filter === 'upcoming' ? 
-    //   supabase.gte('scheduled_at', new Date().toISOString()) :
-    //   supabase.lte('scheduled_at', new Date().toISOString());
-    
-    return [];
-  };
-}
-
-/**
- * Hook to get available slots for a specific mentor
- */
-export function useGetAvailableSlots() {
-  const state = useStore();
-
-  return async (
-    mentorUuid: string,
-    startDate: Date,
-    endDate: Date
-  ): Promise<AvailableSlot[]> => {
-    // TODO: Combine mentor availability with existing bookings
-    // Return slots not already booked
-    
-    return [];
-  };
-}
-
-// Export all actions for composition in store context
-export const mentorActions = {
-  findMentors: useFindMentors(),
-  createBooking: useCreateBooking(),
-  updateBookingStatus: useUpdateBookingStatus(),
-  submitReview: useSubmitReview(),
-  getMySessions: useGetMySessions(),
-  getAvailableSlots: useGetAvailableSlots(),
-};

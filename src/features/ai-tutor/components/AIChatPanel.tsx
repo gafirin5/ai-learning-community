@@ -49,6 +49,49 @@ export function AIChatPanel({ lessonId, courseTitle, lessonTitle }: AIChatPanelP
 
   const loggedIn = Boolean(state.currentUser);
 
+  // Muat riwayat chat dari server saat mount (sekali per login/lesson).
+  // Riwayat kosong adalah kondisi normal — kegagalan ditangani diam.
+  useEffect(() => {
+    if (!loggedIn) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sessionData } = await getSupabase().auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token || cancelled) return;
+
+        const qs = typeof lessonId === 'number' ? `?lessonId=${lessonId}` : '';
+        const res = await fetch(`/api/tutor${qs}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const remaining = res.headers.get('X-Quota-Remaining');
+        if (remaining !== null) setQuotaRemaining(Number(remaining));
+
+        if (!res.ok) return;
+        const data: { messages?: { role: string; content: string; createdAt?: string }[] } =
+          await res.json().catch(() => ({}));
+        if (cancelled || !Array.isArray(data.messages)) return;
+
+        const loaded = data.messages
+          .filter(
+            (m) =>
+              (m.role === 'user' || m.role === 'assistant') &&
+              typeof m.content === 'string'
+          )
+          .map((m) => ({ role: m.role as UiMessage['role'], content: m.content }));
+
+        // Jangan menimpa jika user sudah sempat mengirim pesan lebih dulu.
+        setMessages((prev) => (prev.length > 0 || loaded.length === 0 ? prev : loaded));
+      } catch (e: unknown) {
+        console.warn('[ai-tutor] gagal memuat riwayat chat:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loggedIn, lessonId]);
+
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || streaming) return;

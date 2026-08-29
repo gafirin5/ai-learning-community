@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type { Level, Question, Role, User, Course, Lesson, Quiz } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
 import { slugify } from "@/lib/utils/slug";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   adminCreateUserRemote,
   adminSetRoleRemote,
@@ -45,12 +45,30 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
             email,
             role: data.role,
           });
+          // uuid asli profiles.id diperlukan Mentor Hub; RPC admin hanya
+          // mengembalikan hash number, jadi lookup profil berdasarkan email.
+          let uuid = "";
+          try {
+            const { data: prof } = await getSupabase()
+              .from("profiles")
+              .select("id")
+              .ilike("email", created.email)
+              .maybeSingle();
+            uuid = typeof (prof as { id?: unknown } | null)?.id === "string" ? (prof as { id: string }).id : "";
+          } catch {
+            /* profil belum terbentuk → uuid kosong, terisi ulang saat refresh */
+          }
           const newUser: User = {
             id: created.id,
+            uuid,
             name: data.name.trim(),
             email: created.email,
             role: data.role,
             joinedAt: todayKey(),
+            expertise: [],
+            bio: "",
+            avatarUrl: "",
+            maxSessionsPerWeek: 10,
           };
           setState((s) => ({ ...s, users: [...s.users, newUser] }));
           return { ok: true as const, generatedPassword: created.password };
@@ -61,10 +79,15 @@ export function useAdminActions(state: StoreState, setState: StateSetter) {
 
       const newUser: User = {
         id: Date.now(),
+        uuid: `local-${Date.now()}`,
         name: data.name.trim(),
         email,
         role: data.role,
         joinedAt: todayKey(),
+        expertise: [],
+        bio: "",
+        avatarUrl: "",
+        maxSessionsPerWeek: 10,
       };
       setState((s) => ({ ...s, users: [...s.users, newUser] }));
       return { ok: true as const };

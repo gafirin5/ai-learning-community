@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { MentorProfile, MentorFilterParams } from '../types';
 import { MentorCard } from './MentorCard';
 
@@ -18,6 +18,13 @@ export function MentorList({
   onBookSession 
 }: MentorListProps) {
   const [selectedFilter, setSelectedFilter] = useState<MentorFilterParams>(filterParams || {});
+
+  // Chips expertise = union expertise semua mentor (dinamis dari data).
+  const expertiseChips = useMemo(() => {
+    const set = new Set<string>();
+    mentors.forEach((m) => m.expertise.forEach((e) => set.add(e)));
+    return Array.from(set).sort();
+  }, [mentors]);
 
   // Filter logic (client-side for now, will move to server later)
   const filteredMentors = mentors.filter(mentor => {
@@ -56,6 +63,19 @@ export function MentorList({
     );
   }
 
+  if (mentors.length === 0) {
+    return (
+      <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p className="text-gray-500 dark:text-gray-400 text-lg">
+          Belum ada mentor terdaftar.
+        </p>
+        <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+          Coba lagi nanti atau hubungi admin.
+        </p>
+      </div>
+    );
+  }
+
   if (filteredMentors.length === 0) {
     return (
       <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -85,8 +105,7 @@ export function MentorList({
                 Expertise Areas
               </label>
               <div className="flex flex-wrap gap-2">
-                {['Machine Learning', 'Deep Learning', 'Natural Language Processing', 
-                  'Computer Vision', 'AI Ethics', 'Data Science'].map(skill => (
+                {expertiseChips.map(skill => (
                   <button
                     key={skill}
                     onClick={() => {

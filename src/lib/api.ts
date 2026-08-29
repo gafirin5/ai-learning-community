@@ -17,6 +17,7 @@ import type {
   ReactionKey,
   Report,
 } from "@/lib/types";
+import type { BookingSession, BookingStatus, Review, ScheduleDay, ScheduleRange } from "@/features/mentor/types";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { uuidToNumber } from "@/lib/uuid";
 
@@ -54,6 +55,10 @@ export interface UserState {
     comments: Record<number, ReactionKey | null>;
   };
   reports: Report[];
+  // Mentor Hub (Lane H)
+  mentoringSessions: BookingSession[];
+  mentorReviews: Review[];
+  mentorAvailability: ScheduleRange[];
 }
 
 interface Row { [key: string]: unknown }
@@ -74,10 +79,15 @@ function mapUser(r: Row): User {
   const role: Exclude<Role, "guest"> = roleRaw === "guest" ? "learner" : roleRaw;
   return {
     id: uuidToNumber(str(r.id)),
+    uuid: str(r.id),
     name: str(r.name, email.split("@")[0]),
     email,
     role,
     joinedAt: str(r.joined_at),
+    expertise: strArr(r.expertise),
+    bio: str(r.bio),
+    avatarUrl: str(r.avatar_url),
+    maxSessionsPerWeek: num(r.max_sessions_per_week, 10),
   };
 }
 
@@ -195,7 +205,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     projectCommentRows,
     reactionRows,
   ] = await Promise.all([
-    selectAll("profiles", "id, name, email, role, joined_at"),
+    selectAll("profiles", "id, name, email, role, joined_at, expertise, bio, avatar_url, max_sessions_per_week"),
     selectAll("courses", "id, mentor_id, title, slug, description, level, topics, created_at"),
     selectAll("lessons", "id, course_id, title, summary, content, order"),
     selectAll("quizzes", "id, lesson_id, title, questions"),
@@ -252,11 +262,53 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
   };
 }
 
+// ---- Mentor Hub (Lane H): mapping baris mentoring_sessions/reviews/availability ----
+
+function mapBookingSessionRow(r: Row): BookingSession {
+  return {
+    id: num(r.id),
+    mentorUuid: str(r.mentor_id),
+    learnerUuid: str(r.learner_id),
+    courseId: r.course_id == null ? undefined : num(r.course_id),
+    scheduledAt: new Date(str(r.scheduled_at)),
+    status: str(r.status, "pending") as BookingStatus,
+    timezone: str(r.timezone, "Asia/Jakarta"),
+    videoCallUrl: r.video_call_url == null ? undefined : str(r.video_call_url),
+    notes: r.notes == null ? undefined : str(r.notes),
+    createdAt: new Date(str(r.created_at)),
+    updatedAt: new Date(str(r.updated_at)),
+  };
+}
+
+function mapReviewRow(r: Row): Review {
+  return {
+    id: num(r.id),
+    sessionId: num(r.session_id),
+    reviewerId: str(r.reviewer_id),
+    ratedUserUuid: str(r.rated_user_uuid),
+    rating: num(r.rating),
+    comment: r.comment == null ? undefined : str(r.comment),
+    isPublic: Boolean(r.is_public),
+    createdAt: new Date(str(r.created_at)),
+  };
+}
+
+// Kolom time Postgres kembali "HH:MM:SS" — rapikan ke "HH:MM".
+function mapScheduleRangeRow(r: Row): ScheduleRange {
+  return {
+    dayOfWeek: num(r.day_of_week) as ScheduleDay,
+    startTime: str(r.start_time).slice(0, 5),
+    endTime: str(r.end_time).slice(0, 5),
+    isAvailable: Boolean(r.is_active),
+  };
+}
+
 export async function fetchUserState(): Promise<UserState | null> {
   if (!isSupabaseConfigured()) return null;
   const supabase = getSupabase();
   const { data: session } = await supabase.auth.getSession();
   if (!session?.session?.user) return null;
+  const myUuid = session.session.user.id;
 
   const [
     progressRows,
@@ -271,6 +323,9 @@ export async function fetchUserState(): Promise<UserState | null> {
     statsRows,
     myReactionRows,
     reportRows,
+    mentoringSessionRows,
+    mentorReviewRows,
+    mentorAvailabilityRows,
   ] = await Promise.all([
     selectAll("progress", "lesson_id, status, quiz_score"),
     selectAll("bookmarks", "course_id"),
@@ -287,6 +342,17 @@ export async function fetchUserState(): Promise<UserState | null> {
     selectAll("reactions", "target_type, target_id, reaction_key"),
     selectAll("reports", "id, target_type, target_id, reporter_id, reason, status, created_at").then((r) =>
       r.sort((a, b) => num(b.id) - num(a.id))
+    ),
+    // Mentor Hub (Lane H) — RLS otomatis: sesi hanya milik peserta, review
+    // publik + milik sendiri, availability publik (filter ke uuid sendiri).
+    selectAll("mentoring_sessions", "id, mentor_id, learner_id, course_id, scheduled_at, status, timezone, video_call_url, notes, created_at, updated_at").then((r) =>
+      r.sort((a, b) => str(a.scheduled_at).localeCompare(str(b.scheduled_at)))
+    ),
+    selectAll("mentor_reviews", "id, session_id, reviewer_id, rated_user_uuid, rating, comment, is_public, created_at").then((r) =>
+      r.sort((a, b) => str(b.created_at).localeCompare(str(a.created_at)))
+    ),
+    selectAll("mentor_availability", "id, user_id, day_of_week, start_time, end_time, is_active").then((r) =>
+      r.filter((row) => str(row.user_id) === myUuid)
     ),
   ]);
 
@@ -361,5 +427,8 @@ export async function fetchUserState(): Promise<UserState | null> {
     streak: statsRows.length ? num(statsRows[0].streak) : 0,
     myReactions,
     reports,
+    mentoringSessions: mentoringSessionRows.map(mapBookingSessionRow),
+    mentorReviews: mentorReviewRows.map(mapReviewRow),
+    mentorAvailability: mentorAvailabilityRows.map(mapScheduleRangeRow),
   };
 }

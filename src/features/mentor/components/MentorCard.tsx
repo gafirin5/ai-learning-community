@@ -6,18 +6,25 @@ interface MentorCardProps {
 }
 
 export function MentorCard({ mentor, onClick }: MentorCardProps) {
-  const ratingStars = Math.round(mentor.rating) || 0;
-  
   return (
-    <div 
+    <div
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow cursor-pointer border border-gray-200 dark:border-gray-700"
       onClick={() => onClick?.(mentor)}
     >
-      {/* Header with avatar placeholder */}
+      {/* Header with avatar (img bila avatarUrl ada, fallback inisial) */}
       <div className="flex items-center space-x-4 mb-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-          {mentor.name.charAt(0).toUpperCase()}
-        </div>
+        {mentor.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={mentor.avatarUrl}
+            alt={mentor.name}
+            className="w-16 h-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+          />
+        ) : (
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+            {mentor.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {mentor.name}
@@ -27,16 +34,26 @@ export function MentorCard({ mentor, onClick }: MentorCardProps) {
               ⭐ {mentor.rating.toFixed(1)} / 5.0
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {mentor.totalSessions} sesi completed
+              {mentor.totalSessions} sesi selesai
             </span>
           </div>
         </div>
       </div>
 
+      {/* Bio singkat */}
+      {mentor.bio && (
+        <p className="mb-4 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+          {mentor.bio}
+        </p>
+      )}
+
       {/* Expertise tags */}
       <div className="mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Expertise:</p>
         <div className="flex flex-wrap gap-2">
+          {mentor.expertise.length === 0 && (
+            <span className="text-sm text-gray-400 dark:text-gray-500">Belum diisi</span>
+          )}
           {mentor.expertise.map((skill, index) => (
             <span
               key={index}

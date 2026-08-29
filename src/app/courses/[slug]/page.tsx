@@ -9,6 +9,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Avatar } from "@/components/avatar";
 import { useToast } from "@/components/toast";
 import { CertificateCard } from "@/components/certificate-card";
+import { createNotificationRemote } from "@/lib/api-write";
 
 export default function CourseDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -44,6 +45,12 @@ export default function CourseDetailPage() {
     const r = await issueCertificate(course!.id, course!.title);
     if (r.ok) {
       addNotification({ type: "certificate", title: "Sertifikat diterbitkan", body: "Selamat! Sertifikat " + course!.title + " telah diterbitkan.", href: "/bookmarks", userId: currentUser.id });
+      // Persist juga ke server via RPC create_notification. Field `uuid` pada
+      // User ditambahkan lane lain — skip remote bila belum tersedia.
+      const uuid = currentUser?.uuid ?? "";
+      if (uuid) {
+        createNotificationRemote({ userId: uuid, type: "certificate", title: "Sertifikat diterbitkan", body: "Selamat! Sertifikat " + course!.title + " telah diterbitkan.", href: "/bookmarks" }).catch((e) => console.warn("[certificate] createNotificationRemote gagal:", e));
+      }
       toast("Sertifikat diterbitkan! Lihat di Tersimpan.", "success");
     } else {
       toast(r.error ?? "Gagal", "error");

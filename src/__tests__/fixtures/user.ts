@@ -9,8 +9,12 @@ export const mockUser: User = {
   uuid: '550e8400-e29b-41d4-a716-446655440000',
   email: 'test@example.com',
   name: 'Test User',
-  avatarUrl: null,
-  role: 'learner' as const, // guest | learner | mentor | admin
+  avatarUrl: '',
+  role: 'learner' as const, // learner | mentor | admin (User.role tidak menerima guest)
+  joinedAt: '2026-01-01',
+  expertise: [],
+  bio: '',
+  maxSessionsPerWeek: 10,
 };
 
 export const mockAdminUser: User = {
@@ -29,9 +33,15 @@ export const mockMentorUser: User = {
   email: 'mentor@example.com',
   name: 'Dr. Mentor AI',
   role: 'mentor' as const,
+  expertise: ['Machine Learning'],
+  bio: 'Mentor AI untuk testing.',
 };
 
-export const mockGuestUser: User = {
+// Role 'guest' ada pada Role global tapi dikecualikan dari User.role,
+// jadi mock guest memakai tipe yang sedikit dilonggarkan untuk kebutuhan test.
+export type MockGuestUser = Omit<User, 'role'> & { role: 'guest' };
+
+export const mockGuestUser: MockGuestUser = {
   ...mockUser,
   id: 4,
   uuid: '880e8400-e29b-41d4-a716-446655440003',
@@ -46,10 +56,14 @@ export const mockGuestUser: User = {
 export const generateMockUsers = (count: number): User[] => {
   return Array.from({ length: count }, (_, i) => ({
     id: i + 1,
-    uuid: `${i.toString().padStart(8, '0')}-uuid-${i}`,
+    uuid: `880e8400-e29b-41d4-a716-4466${i.toString().padStart(8, '0')}`,
     email: `user${i}@example.com`,
     name: `Test User ${i + 1}`,
-    avatarUrl: null,
-    role: (['guest', 'learner', 'mentor', 'admin'] as const)[Math.floor(Math.random() * 4)],
+    avatarUrl: '',
+    role: (['learner', 'mentor', 'admin'] as const)[i % 3],
+    joinedAt: '2026-01-01',
+    expertise: [],
+    bio: '',
+    maxSessionsPerWeek: 10,
   }));
 };

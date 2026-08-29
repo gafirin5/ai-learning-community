@@ -114,6 +114,17 @@ export async function POST(req: NextRequest) {
     return jsonError(429, "Kuota harian AI Tutor habis. Coba lagi besok.");
   }
 
+  // Data untuk simpan riwayat chat di blok finally (di-capture sebelum stream
+  // dibuat supaya tidak bergantung pada lifecycle ReadableStream).
+  // Client selalu mengirim message user di posisi terakhir; defensive:
+  // bila bukan, ambil message user terakhir dari history.
+  const lastMsg = msgs[msgs.length - 1];
+  const lastUserContent =
+    lastMsg.role === "user"
+      ? lastMsg.content
+      : msgs.filter((m) => m.role === "user").pop()?.content ?? "";
+  const historyLessonId = typeof body.lessonId === "number" ? body.lessonId : null;
+
   // 4. Panggil LLM (OpenAI-compatible) dengan streaming
   const upstream = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -140,7 +151,6 @@ export async function POST(req: NextRequest) {
 
   // 5. Stream passthrough + hitung pemakaian di akhir
   const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
   let fullText = "";
 
   const stream = new ReadableStream({
@@ -173,16 +183,128 @@ export async function POST(req: NextRequest) {
         if (quotaUpdateErr) {
           console.error("[tutor] update_chat_quota failed:", quotaUpdateErr.message);
         }
+
+        // Simpan riwayat chat (best-effort — kegagalan tidak mempengaruhi
+        // response yang sudah dikirim). RLS owner via userClient (token user).
+        try {
+          const historyRows: {
+            user_id: string;
+            lesson_id: number | null;
+            role: "user" | "assistant";
+            message: string;
+          }[] = [];
+          if (lastUserContent) {
+            historyRows.push({
+              user_id: uuid,
+              lesson_id: historyLessonId,
+              role: "user",
+              message: lastUserContent,
+            });
+          }
+          if (fullText) {
+            historyRows.push({
+              user_id: uuid,
+              lesson_id: historyLessonId,
+              role: "assistant",
+              message: fullText,
+            });
+          }
+          if (historyRows.length > 0) {
+            const { error: historyErr } = await userClient
+              .from("chat_history")
+              .insert(historyRows);
+            if (historyErr) {
+              console.error("[tutor] save history failed:", historyErr.message);
+            }
+          }
+        } catch (historyExc) {
+          console.error("[tutor] save history failed:", historyExc);
+        }
       }
     },
   });
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Quota-Limit": String(DAILY_LIMIT),
-    },
-  });
+  const responseHeaders: Record<string, string> = {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Quota-Limit": String(DAILY_LIMIT),
+  };
+  if (quota && typeof quota.remaining === "number") {
+    responseHeaders["X-Quota-Remaining"] = String(quota.remaining);
+  }
+
+  return new Response(stream, { headers: responseHeaders });
+}
+
+// GET: riwayat chat user (maks 50, ascending). Query param opsional: lessonId.
+export async function GET(req: NextRequest) {
+  // Verifikasi user dari token Supabase — pola sama dengan POST.
+  const authHeader = req.headers.get("authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return jsonError(401, "Login dulu untuk memakai AI Tutor.");
+
+  const authClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  );
+  const { data: userData, error: userErr } = await authClient.auth.getUser(token);
+  if (userErr || !userData?.user) return jsonError(401, "Sesi tidak valid. Login ulang.");
+  const uuid = userData.user.id;
+
+  const userClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    }
+  );
+
+  const lessonIdParam = req.nextUrl.searchParams.get("lessonId");
+  let lessonId: number | null = null;
+  if (lessonIdParam !== null) {
+    lessonId = Number(lessonIdParam);
+    if (!Number.isFinite(lessonId)) return jsonError(400, "lessonId tidak valid.");
+  }
+
+  // RLS owner sudah membatasi per user; eq user_id eksplisit tetap dipasang
+  // (defensive, konsisten pola repo).
+  let historyQuery = userClient
+    .from("chat_history")
+    .select("role, message, created_at")
+    .eq("user_id", uuid);
+  if (lessonId !== null) historyQuery = historyQuery.eq("lesson_id", lessonId);
+  const { data, error } = await historyQuery
+    .order("created_at", { ascending: true })
+    .limit(50);
+  if (error) return jsonError(500, "Gagal memuat riwayat chat: " + error.message);
+
+  const rows = (data ?? []) as { role?: unknown; message?: unknown; created_at?: unknown }[];
+  const messages = rows
+    .filter((r) => r.role === "user" || r.role === "assistant")
+    .map((r) => ({
+      role: r.role as "user" | "assistant",
+      content: typeof r.message === "string" ? r.message : "",
+      createdAt: typeof r.created_at === "string" ? r.created_at : "",
+    }));
+
+  // Kuota tersisa (best-effort — riwayat tetap dikembalikan walau RPC gagal).
+  let quotaRemaining: number | null = null;
+  try {
+    const { data: quotaRows } = await userClient.rpc("check_chat_quota", {
+      p_user_id: uuid,
+      p_daily_limit: DAILY_LIMIT,
+    });
+    const quota = Array.isArray(quotaRows) ? quotaRows[0] : quotaRows;
+    if (quota && typeof quota.remaining === "number") quotaRemaining = quota.remaining;
+  } catch {
+    /* abaikan */
+  }
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (quotaRemaining !== null) headers["X-Quota-Remaining"] = String(quotaRemaining);
+
+  return new Response(JSON.stringify({ messages }), { headers });
 }

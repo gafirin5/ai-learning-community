@@ -28,4 +28,7 @@ export const initialState: StoreState = {
   certificates: [],
   points: 0,
   badges: [],
+  mentoringSessions: [],
+  mentorReviews: [],
+  mentorAvailability: [],
 };

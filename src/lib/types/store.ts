@@ -6,6 +6,9 @@ import type { ProgressEntry } from "./progress";
 import type { User } from "./user";
 import type { AppNotification } from "./notification";
 import type { Certificate } from "./gamification";
+// Tipe Mentor Hub (Lane H) — features/mentor/types.ts bebas import (type-only),
+// jadi tidak menimbulkan siklus.
+import type { BookingSession, Review, ScheduleRange } from "@/features/mentor/types";
 
 export interface StoreState {
   currentUserId: number | null;
@@ -44,4 +47,9 @@ export interface StoreState {
   certificates: Certificate[];
   points: number;
   badges: string[];
+  // Mentor Hub (Lane H) — sesi milik sendiri (RLS peserta), review publik+milik,
+  // dan availability (milik sendiri).
+  mentoringSessions: BookingSession[];
+  mentorReviews: Review[];
+  mentorAvailability: ScheduleRange[];
 }

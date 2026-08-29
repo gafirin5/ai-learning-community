@@ -12,6 +12,13 @@ import type {
   StoreState,
   User,
 } from "@/lib/types";
+import type {
+  AvailableSlot,
+  BookingInput,
+  BookingStatus,
+  ReviewInput,
+  ScheduleRange,
+} from "@/features/mentor/types";
 
 export type StateSetter = (updater: (s: StoreState) => StoreState) => void;
 export type { StoreState } from "@/lib/types";
@@ -86,6 +93,13 @@ export interface StoreContextValue {
   awardPoints: (amount: number) => void;
   issueCertificate: (courseId: number, courseTitle: string) => Promise<{ ok: boolean; error?: string }>;
   syncBadges: () => void;
+  // Mentor Hub (Lane H)
+  createBooking: (input: BookingInput) => Promise<void>;
+  updateBookingStatus: (sessionId: number, status: BookingStatus) => Promise<void>;
+  submitReview: (input: ReviewInput) => Promise<void>;
+  saveAvailability: (slots: ScheduleRange[]) => Promise<void>;
+  refreshMentorSessions: () => Promise<void>;
+  getAvailableSlots: (mentorUuid: string, startDate: Date, endDate: Date) => Promise<AvailableSlot[]>;
 }
 
 export const StoreContext = createContext<StoreContextValue | null>(null);
