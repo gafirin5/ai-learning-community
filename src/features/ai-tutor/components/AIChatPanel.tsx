@@ -1,360 +1,293 @@
 /**
  * AI Tutor - Chat Panel Component
- * 
- * Owner: Lane C (Component Agent)
+ *
+ * Memanggil route handler server-side (/api/tutor) — API key LLM
+ * tidak pernah terekspos ke browser. Streaming via SSE.
+ *
+ * Owner: Lane C
  */
 
-'use client';
+"use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store/context';
-import type { ChatMessage, ChatPrompt, RequestOptions } from '../types';
-import { useChatHistory, useQuota } from '../hooks/useChat';
-import { OpenRouterProvider } from '../providers/openrouter';
+import { getSupabase } from '@/lib/supabase';
 import { MarkdownLite } from '@/components/ui/markdown-lite';
 
 interface AIChatPanelProps {
   lessonId?: number;
-  courseId?: number;
   courseTitle?: string;
   lessonTitle?: string;
 }
 
-export function AIChatPanel({ 
-  lessonId, 
-  courseId, 
-  courseTitle, 
-  lessonTitle 
-}: AIChatPanelProps) {
+interface UiMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+const SUGGESTIONS = [
+  'Jelaskan konsep utama materi ini dengan bahasa sederhana',
+  'Beri contoh kasus nyata dari topik ini',
+  'Apa kesalahan umum pemula di topik ini?',
+];
+
+export function AIChatPanel({ lessonId, courseTitle, lessonTitle }: AIChatPanelProps) {
+  const router = useRouter();
   const state = useStore();
-  // Use currentUser ID from store context (number type)
-  // For Supabase operations, we'll need to fetch the actual UUID
-  const currentUserId = state.currentUser?.id || 0;
-  const userId = String(currentUserId);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<UiMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Hooks for chat history and quota
-  const { messages: dbMessages, addMessage: saveToDb } = useChatHistory(userId, lessonId || 0);
-  const { quota, checkQuota, useToken } = useQuota(userId);
-  
-  // Load DB messages on mount
+  const [quotaRemaining, setQuotaRemaining] = useState<number | null>(null);
+
+  const endRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (lessonId && userId) {
-      setMessages(dbMessages);
-      checkQuota();
-    }
-  }, [lessonId, userId, dbMessages, checkQuota]);
-  
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
-  
-  // Streaming buffer for incremental display
-  const streamingBuffer = useRef<string>('');
-  const currentChunkIndex = useRef<number>(-1);
-  
-  // Build prompt with context
-  const buildPrompt = (): Partial<ChatPrompt> => {
-    const prompt: Partial<ChatPrompt> = {};
-    
-    if (lessonId) prompt.lessonId = lessonId;
-    if (courseId) prompt.courseId = courseId;
-    if (courseTitle) prompt.courseTitle = courseTitle;
-    if (lessonTitle) prompt.lessonTitle = lessonTitle;
-    
-    return prompt;
-  };
-  
+
+  const loggedIn = Boolean(state.currentUser);
+
   const sendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
-    
-    // Check quota
-    if (!quota.canRequest) {
-      setError('Daily quota exhausted. Please come back tomorrow!');
-      setTimeout(() => setError(null), 5000);
-      return;
-    }
-    
-    const userMessage = inputText.trim();
-    setInputText('');
+    const text = input.trim();
+    if (!text || streaming) return;
+
     setError(null);
-    
-    // Add user message to UI
-    const userMsg: ChatMessage = {
-      role: 'user',
-      content: userMessage,
-      timestamp: new Date(),
-    };
-    
-    setMessages(prev => [...prev, userMsg]);
-    
-    // Build AI message placeholder
-    let aiMessageContent = '';
-    const aiMsgPlaceholder: ChatMessage = {
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, aiMsgPlaceholder]);
-    setIsLoading(true);
-    
+    setInput('');
+    const history: UiMessage[] = [...messages, { role: 'user', content: text }];
+    setMessages([...history, { role: 'assistant', content: '' }]);
+    setStreaming(true);
+
     try {
-      // Prepare request
-      const prompt: ChatPrompt = {
-        ...buildPrompt(),
-        messageHistory: [
-          ...messages.map(m => ({ 
-            role: m.role, 
-            content: m.content,
-            timestamp: new Date() 
-          })),
-          { role: 'user' as const, content: userMessage, timestamp: new Date() },
-        ],
-      };
-      
-      // Initialize provider
-      const provider = new OpenRouterProvider(process.env.NEXT_PUBLIC_OPENROUTER_API_KEY);
-      
-      // Stream response
-      streamingBuffer.current = '';
-      
-      for await (const chunk of provider.generate(prompt, { stream: true })) {
-        if (chunk.content) {
-          streamingBuffer.current += chunk.content;
-          
-          // Update messages incrementally
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...aiMsgPlaceholder,
-              content: streamingBuffer.current,
-            };
-            // Track last position for scroll
-            currentChunkIndex.current = updated.length - 1;
-            return updated;
-          });
-        }
-        
-        if (chunk.isComplete) {
-          break;
+      const { data: sessionData } = await getSupabase().auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        throw new Error('Sesi tidak ditemukan. Silakan login ulang.');
+      }
+
+      const res = await fetch('/api/tutor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          messages: history,
+          lessonId,
+          lessonTitle,
+          courseTitle,
+        }),
+      });
+
+      const remaining = res.headers.get('X-Quota-Remaining');
+      if (remaining !== null) setQuotaRemaining(Number(remaining));
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Gagal (${res.status})`);
+      }
+
+      // Parse SSE stream: data: {"choices":[{"delta":{"content":"..."}}]}
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let acc = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // baris terakhir bisa belum lengkap
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const payload = trimmed.slice(5).trim();
+          if (payload === '[DONE]') continue;
+          try {
+            const json = JSON.parse(payload);
+            const delta = json.choices?.[0]?.delta?.content;
+            if (typeof delta === 'string' && delta) {
+              acc += delta;
+              setMessages((prev) => {
+                const next = [...prev];
+                next[next.length - 1] = { role: 'assistant', content: acc };
+                return next;
+              });
+            }
+          } catch {
+            // chunk tidak valid — abaikan
+          }
         }
       }
-      
-      // Finalize message
-      const finalContent = streamingBuffer.current;
-      setMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...aiMsgPlaceholder,
-          content: finalContent,
-          tokensUsed: { prompt: 150, completion: finalContent.split(' ').length * 1.3 }, // Rough estimate
-        };
-        return updated;
-      });
-      
-      // Save to database asynchronously
-      saveToDb({
-        role: 'assistant',
-        content: finalContent,
-        timestamp: new Date(),
-      });
-      
-      // Use quota token
-      useToken(finalContent.split(' ').length * 10); // Estimate tokens
-      
-      // Show success feedback
-      if (finalContent.toLowerCase().includes('confused') || finalContent.toLowerCase().includes('tidak')) {
-        // Suggest follow-up questions if user seems confused
-        const suggestions = [
-          'Apakah ada bagian yang ingin dijelaskan lebih detail?',
-          'Bisa berikan contoh praktis untuk konsep ini?',
-          'Apa hubungannya dengan materi sebelumnya?'
-        ];
-        console.log('Suggested follow-ups:', suggestions);
+
+      if (!acc) {
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = {
+            role: 'assistant',
+            content: '(Tidak ada jawaban dari server. Coba lagi.)',
+          };
+          return next;
+        });
       }
-      
-    } catch (err: any) {
-      console.error('AI generation error:', err);
-      
-      setMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...aiMsgPlaceholder,
-          content: `Error: ${err.message || 'Failed to generate response. Please try again.'}`,
-        };
-        return updated;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Terjadi kesalahan.';
+      setError(msg);
+      // buat placeholder assistant yang gagal jadi tidak menggantung kosong
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        if (last && last.role === 'assistant' && !last.content) next.pop();
+        return next;
       });
-      
-      setError(err.message || 'Failed to generate response');
-      
-      // Reset loading state
-      setTimeout(() => {
-        setIsLoading(false);
-        setError(null);
-      }, 3000);
     } finally {
-      setIsLoading(false);
+      setStreaming(false);
     }
   };
-  
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
-  
+
   const clearConversation = () => {
     setMessages([]);
-    // In real impl: also call clearHistory() hook
+    setError(null);
   };
-  
+
+  // Belum login — ajak login dulu
+  if (!loggedIn) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-white">
+          <h3 className="font-bold">AI Tutor</h3>
+          <p className="text-sm opacity-90">{lessonTitle || 'Tanya jawab materi'}</p>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+          <span className="text-3xl">🤖</span>
+          <p className="text-sm text-muted">
+            Login untuk bertanya kepada AI Tutor. Kuota {`20 pertanyaan`} per hari.
+          </p>
+          <button
+            onClick={() => router.push('/login')}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Masuk
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-white rounded-t-lg">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-lg">AI Tutor</h3>
-            <p className="text-sm opacity-90">
-              {lessonTitle ? `Context: ${lessonTitle}` : 'General Q&A'}
+            <h3 className="font-bold">AI Tutor</h3>
+            <p className="truncate text-sm opacity-90">
+              {lessonTitle ? `Konteks: ${lessonTitle}` : 'Tanya jawab bebas'}
             </p>
           </div>
-          
-          <div className="flex items-center space-x-3">
-            {/* Quota Display */}
-            <div className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-              {quota.remaining}/{quota.dailyLimit} requests today
-            </div>
-            
-            {/* Clear Button */}
+          <div className="flex items-center gap-2">
+            {quotaRemaining !== null && (
+              <span className="rounded bg-white/20 px-2 py-1 text-xs">
+                sisa {quotaRemaining}/20
+              </span>
+            )}
             <button
               onClick={clearConversation}
-              className="p-1.5 hover:bg-white hover:bg-opacity-20 rounded transition-colors"
-              title="Clear conversation"
+              disabled={streaming || messages.length === 0}
+              className="rounded p-1.5 transition-colors hover:bg-white/20 disabled:opacity-40"
+              title="Hapus percakapan"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+      {/* Messages */}
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 thin-scroll">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            <p className="text-lg mb-2">👋 Hello! I'm your AI tutor.</p>
-            <p className="text-sm">Ask me anything about this lesson or course!</p>
-            
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-md mx-auto">
-              {[
-                'Jelaskan konsep machine learning',
-                'Bagaimana cara kerja neural network?',
-                'Apa perbedaan supervised dan unsupervised learning?',
-                'Bantu saya debug kode Python ini'
-              ].map((suggestion, i) => (
+          <div className="py-6 text-center">
+            <p className="mb-1 text-2xl">👋</p>
+            <p className="text-sm text-muted">Tanya apa saja tentang materi ini.</p>
+            <div className="mx-auto mt-4 grid max-w-md grid-cols-1 gap-2">
+              {SUGGESTIONS.map((s) => (
                 <button
-                  key={i}
-                  onClick={() => {
-                    setInputText(suggestion);
-                    const input = document.querySelector('textarea') as HTMLTextAreaElement;
-                    input?.focus();
-                  }}
-                  className="text-left px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm"
+                  key={s}
+                  onClick={() => setInput(s)}
+                  className="rounded-md bg-surface-hover px-3 py-2 text-left text-sm text-content transition-colors hover:bg-border"
                 >
-                  {suggestion}
+                  {s}
                 </button>
               ))}
             </div>
           </div>
         )}
-        
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
               className={`max-w-[85%] rounded-lg px-4 py-3 ${
-                msg.role === 'user'
+                m.role === 'user'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                  : 'bg-surface-hover text-content'
               }`}
             >
-              {msg.role === 'assistant' ? (
-                <MarkdownLite content={msg.content} />
+              {m.role === 'assistant' ? (
+                <MarkdownLite source={m.content || '…'} />
               ) : (
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-              )}
-              
-              {/* Token count display for assistant messages */}
-              {msg.role === 'assistant' && msg.tokensUsed && (
-                <div className="text-xs mt-2 opacity-70">
-                  ~{msg.tokensUsed.completion.toLocaleString()} tokens
-                </div>
+                <p className="whitespace-pre-wrap">{m.content}</p>
               )}
             </div>
           </div>
         ))}
-        
-        {/* Loading Indicator */}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-3">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+
+        <div ref={endRef} />
       </div>
-      
-      {/* Input Area */}
-      <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-        {error && (
-          <div className="mb-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 px-4 py-2 rounded">
-            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-          </div>
-        )}
-        
-        <div className="flex space-x-2">
+
+      {/* Error */}
+      {error && (
+        <div className="mx-4 mb-2 rounded border-l-4 border-red-500 bg-red-50 px-3 py-2 dark:bg-red-900/20">
+          <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+        </div>
+      )}
+
+      {/* Input */}
+      <div className="border-t border-border p-3">
+        <div className="flex gap-2">
           <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Type your question... (Shift+Enter for newline)"
-            rows={3}
-            disabled={isLoading || !quota.canRequest}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none disabled:opacity-50"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Tulis pertanyaan… (Shift+Enter untuk baris baru)"
+            rows={2}
+            disabled={streaming}
+            className="flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-content focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
           />
-          
           <button
             onClick={sendMessage}
-            disabled={isLoading || !inputText.trim() || !quota.canRequest}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={streaming || !input.trim()}
+            className="rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isLoading ? 'Thinking...' : 'Send'}
+            {streaming ? '…' : 'Kirim'}
           </button>
-        </div>
-        
-        {/* Status footer */}
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-          <span>{messages.length} messages in this session</span>
-          {!quota.canRequest && (
-            <span className="text-yellow-600 dark:text-yellow-400">⚠️ Daily quota reached</span>
-          )}
         </div>
       </div>
     </div>

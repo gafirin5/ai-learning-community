@@ -16,8 +16,10 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
     "next": "14.2.35",
+    "pg": "^8.23.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "ssh2": "^1.17.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

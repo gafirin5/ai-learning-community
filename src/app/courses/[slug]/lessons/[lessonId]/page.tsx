@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { MarkdownLite, extractHeadings } from "@/components/markdown-lite";
 import { QuizPanel } from "@/components/quiz-panel";
-import { TutorChat } from "@/components/tutor-chat";
+import { AIChatPanel } from "@/features/ai-tutor/components";
 import { TableOfContents } from "@/components/table-of-contents";
 import { useToast } from "@/components/toast";
 
@@ -169,7 +169,9 @@ export default function LessonPage() {
 
         {/* Tutor chat column (desktop) */}
         <aside className="hidden w-96 shrink-0 border-l border-border bg-surface lg:block">
-          <TutorChat lessonId={lessonId} />
+          <div className="sticky top-14 h-[calc(100vh-3.5rem)]">
+            <AIChatPanel lessonId={lessonId} lessonTitle={lesson.title} courseTitle={course.title} />
+          </div>
         </aside>
       </div>
 
@@ -195,7 +197,7 @@ export default function LessonPage() {
               </button>
             </div>
             <div className="min-h-0 flex-1">
-              <TutorChat lessonId={lessonId} />
+              <AIChatPanel lessonId={lessonId} lessonTitle={lesson.title} courseTitle={course.title} />
             </div>
           </div>
         </div>
