@@ -14,6 +14,7 @@ const NAV = [
   { href: "/forum", label: "Forum" },
   { href: "/projects", label: "Proyek" },
   { href: "/mentor", label: "Mentor" },
+  { href: "/challenges", label: "Challenge" },
   { href: "/leaderboard", label: "Peringkat" },
 ];
 

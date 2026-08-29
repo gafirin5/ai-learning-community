@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store";
 import { Avatar } from "@/components/avatar";
 import { EmptyState, LevelBadge } from "@/components/ui";
 import { useToast } from "@/components/toast";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { Level } from "@/lib/types";
 
 const LEVELS: Array<{ value: Level; label: string }> = [
@@ -19,13 +20,25 @@ interface ProjectForm {
   repoUrl: string;
   tags: string;
   level: Level;
+  coverImageUrl: string;
+  demoUrl: string;
 }
+
+const EMPTY_FORM: ProjectForm = {
+  title: "",
+  description: "",
+  repoUrl: "",
+  tags: "",
+  level: "pemula",
+  coverImageUrl: "",
+  demoUrl: "",
+};
 
 export function Projects() {
   const { state, editProject, deleteProject, deleteProjectComment } = useStore();
   const { toast } = useToast();
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<ProjectForm>({ title: "", description: "", repoUrl: "", tags: "", level: "pemula" });
+  const [form, setForm] = useState<ProjectForm>(EMPTY_FORM);
 
   const commentsByProject = useMemo(() => {
     const map = new Map<number, typeof state.projectComments>();
@@ -45,7 +58,15 @@ export function Projects() {
   function startEdit(projectId: number) {
     const p = state.projects.find((x) => x.id === projectId);
     if (!p) return;
-    setForm({ title: p.title, description: p.description, repoUrl: p.repoUrl, tags: p.tags.join(", "), level: p.level });
+    setForm({
+      title: p.title,
+      description: p.description,
+      repoUrl: p.repoUrl,
+      tags: p.tags.join(", "),
+      level: p.level,
+      coverImageUrl: p.coverImageUrl ?? "",
+      demoUrl: p.demoUrl ?? "",
+    });
     setEditingId(projectId);
   }
 
@@ -59,9 +80,23 @@ export function Projects() {
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       level: form.level,
     });
+    // updateProjectRemote (api-write, file lane lain) belum mengirim kolom
+    // cover_image_url/demo_url — persist kedua kolom via update langsung
+    // (RLS projects: update owner-or-admin). Keterbatasan: state lokal tidak
+    // ikut di-patch dari komponen ini, nilai baru tampil setelah refresh.
+    if (isSupabaseConfigured()) {
+      const { error } = await getSupabase()
+        .from("projects")
+        .update({ cover_image_url: form.coverImageUrl.trim(), demo_url: form.demoUrl.trim() })
+        .eq("id", editingId);
+      if (error) {
+        toast("Proyek diperbarui, tetapi gagal menyimpan URL cover/demo", "error");
+        return;
+      }
+    }
     toast("Proyek diperbarui");
     setEditingId(null);
-    setForm({ title: "", description: "", repoUrl: "", tags: "", level: "pemula" });
+    setForm(EMPTY_FORM);
   }
 
   function handleDelete(projectId: number, title: string) {
@@ -88,6 +123,10 @@ export function Projects() {
                 <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Judul" />
                 <textarea className="input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi" />
                 <input className="input" value={form.repoUrl} onChange={(e) => setForm({ ...form, repoUrl: e.target.value })} placeholder="URL repositori" />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input className="input" value={form.coverImageUrl} onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })} placeholder="URL gambar cover (opsional)" />
+                  <input className="input" value={form.demoUrl} onChange={(e) => setForm({ ...form, demoUrl: e.target.value })} placeholder="URL demo live (opsional)" />
+                </div>
                 <input className="input" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="Tag (pisahkan dengan koma)" />
                 <select className="input" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value as Level })}>
                   {LEVELS.map((l) => (

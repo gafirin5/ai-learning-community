@@ -170,6 +170,8 @@ function mapProject(r: Row): Project {
     repoUrl: str(r.repo_url),
     tags: strArr(r.tags),
     level: (str(r.level, "pemula") as Project["level"]),
+    coverImageUrl: str(r.cover_image_url),
+    demoUrl: str(r.demo_url),
     createdAt: str(r.created_at),
     commentIds: [],
     likeCount: num(r.like_count),
@@ -213,7 +215,7 @@ export async function fetchRemoteState(): Promise<RemoteState | null> {
     selectAll("quizzes", "id, lesson_id, title, questions"),
     selectAll("threads", "id, user_id, title, body, tags, vote_count, view_count, accepted_comment_id, created_at, category_id, pinned, hidden, images"),
     selectAll("comments", "id, thread_id, user_id, parent_id, body, vote_count, created_at, hidden, images"),
-    selectAll("projects", "id, user_id, title, description, repo_url, tags, level, created_at, like_count"),
+    selectAll("projects", "id, user_id, title, description, repo_url, tags, level, created_at, like_count, cover_image_url, demo_url"),
     selectAll("project_comments", "id, project_id, user_id, body, created_at"),
     selectAll("reactions", "user_id, target_type, target_id, reaction_key"),
   ]);

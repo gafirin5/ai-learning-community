@@ -8,6 +8,7 @@ import { LevelBadge, Tag } from "@/components/ui";
 import { Avatar } from "@/components/avatar";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { VoteControl } from "@/components/vote-control";
+import { MarkdownLite } from "@/components/markdown-lite";
 import { useToast } from "@/components/toast";
 
 export default function ProjectDetailPage() {
@@ -48,8 +49,17 @@ export default function ProjectDetailPage() {
       />
 
       <div className="card mb-8 p-6 sm:p-8">
+        {project.coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={project.coverImageUrl}
+            alt={project.title}
+            className="mb-6 max-h-96 w-full rounded-xl object-cover"
+          />
+        )}
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <LevelBadge level={project.level} />
+          {project.demoUrl && <span className="badge bg-brand-soft text-brand">🚀 Demo</span>}
           {project.tags.map((t) => (
             <Tag key={t}>{t}</Tag>
           ))}
@@ -72,18 +82,30 @@ export default function ProjectDetailPage() {
             onVote={(d) => voteProject(project.id, d)}
           />
         </div>
-        <p className="whitespace-pre-wrap text-[15px] leading-7 text-muted">
-          {project.description}
-        </p>
-        {project.repoUrl && (
-          <a
-            href={project.repoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-secondary mt-6"
-          >
-            🔗 Lihat Repositori
-          </a>
+        <MarkdownLite source={project.description} />
+        {(project.repoUrl || project.demoUrl) && (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {project.demoUrl && (
+              <a
+                href={project.demoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+              >
+                🚀 Lihat Demo
+              </a>
+            )}
+            {project.repoUrl && (
+              <a
+                href={project.repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+              >
+                🔗 Lihat Repositori
+              </a>
+            )}
+          </div>
         )}
       </div>
 

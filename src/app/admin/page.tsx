@@ -10,11 +10,13 @@ import { Courses } from "@/components/admin/courses";
 import { Forum } from "@/components/admin/forum";
 import { Projects } from "@/components/admin/projects";
 import { Reports } from "@/components/admin/reports";
+import { Analytics } from "@/components/admin/analytics";
 
-type Tab = "overview" | "users" | "courses" | "forum" | "projects" | "reports";
+type Tab = "overview" | "analytics" | "users" | "courses" | "forum" | "projects" | "reports";
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: "overview", label: "Ringkasan" },
+  { id: "analytics", label: "📊 Analitik" },
   { id: "users", label: "Pengguna" },
   { id: "courses", label: "Kursus & Kuis" },
   { id: "forum", label: "Forum" },
@@ -65,6 +67,7 @@ export default function AdminPage() {
       </div>
 
       {tab === "overview" && <Overview onNavigate={setTab} />}
+      {tab === "analytics" && <Analytics />}
       {tab === "users" && <Users />}
       {tab === "courses" && <Courses />}
       {tab === "forum" && <Forum />}

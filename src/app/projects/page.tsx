@@ -40,6 +40,7 @@ export default function ProjectsPage() {
   const [tag, setTag] = useState<string>("");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("terbaru");
+  const [hasDemo, setHasDemo] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -47,6 +48,8 @@ export default function ProjectsPage() {
   const [repoUrl, setRepoUrl] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [projLevel, setProjLevel] = useState<Level>("pemula");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [demoUrl, setDemoUrl] = useState("");
 
   const allTags = useMemo(() => {
     const s = new Set<string>();
@@ -59,6 +62,7 @@ export default function ProjectsPage() {
     const list = state.projects.filter((p) => {
       if (level !== "semua" && p.level !== level) return false;
       if (tag && !p.tags.includes(tag)) return false;
+      if (hasDemo && !(p.demoUrl ?? "")) return false;
       if (q && !p.title.toLowerCase().includes(q) && !p.description.toLowerCase().includes(q) && !p.tags.some((t) => t.includes(q))) return false;
       return true;
     });
@@ -78,7 +82,7 @@ export default function ProjectsPage() {
       });
     }
     return sorted;
-  }, [state.projects, level, tag, query, sort]);
+  }, [state.projects, level, tag, hasDemo, query, sort]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -88,7 +92,15 @@ export default function ProjectsPage() {
       .map((t) => t.trim().replace(/^#/, "").toLowerCase())
       .filter(Boolean);
     try {
-      await addProject({ title, description, repoUrl, tags, level: projLevel });
+      await addProject({
+        title,
+        description,
+        repoUrl,
+        tags,
+        level: projLevel,
+        coverImageUrl: coverUrl.trim(),
+        demoUrl: demoUrl.trim(),
+      });
     } catch {
       toast("Gagal menambahkan proyek", "error");
       return;
@@ -97,6 +109,8 @@ export default function ProjectsPage() {
     setDescription("");
     setRepoUrl("");
     setTagsInput("");
+    setCoverUrl("");
+    setDemoUrl("");
     setShowForm(false);
     toast("Proyek berhasil dipublikasikan");
   }
@@ -180,6 +194,30 @@ export default function ProjectsPage() {
               </select>
             </div>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="proj-cover">URL gambar cover (opsional)</label>
+              <input
+                id="proj-cover"
+                type="url"
+                className="input"
+                placeholder="https://…/cover.png"
+                value={coverUrl}
+                onChange={(e) => setCoverUrl(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="proj-demo">URL demo live (opsional)</label>
+              <input
+                id="proj-demo"
+                type="url"
+                className="input"
+                placeholder="https://demo-proyek-anda…"
+                value={demoUrl}
+                onChange={(e) => setDemoUrl(e.target.value)}
+              />
+            </div>
+          </div>
           <button type="submit" className="btn-primary">
             Publikasikan
           </button>
@@ -222,6 +260,13 @@ export default function ProjectsPage() {
             {f.label}
           </button>
         ))}
+        <button
+          onClick={() => setHasDemo((v) => !v)}
+          aria-pressed={hasDemo}
+          className={`pill ${hasDemo ? "pill-active" : "pill-idle"}`}
+        >
+          Ada Demo
+        </button>
         <select
           className="input ml-auto w-full sm:w-56"
           value={tag}
@@ -244,21 +289,36 @@ export default function ProjectsPage() {
           description="Coba ubah filter, atau publikasikan proyek Anda sendiri."
         />
       ) : (
-        <div key={`${level}-${tag}-${sort}-${query}`} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div key={`${level}-${tag}-${sort}-${query}-${hasDemo}`} className="columns-1 gap-4 sm:columns-2 lg:columns-3">
           {filtered.map((project, i) => {
             const owner = state.users.find((u) => u.id === project.userId);
             const voteVal = state.votes.projects?.[project.id] ?? 0;
             const likeCount = (project.likeCount ?? 0) + voteVal;
+            const cover = project.coverImageUrl ?? "";
+            const demo = project.demoUrl ?? "";
             return (
-              <Reveal key={project.id} delay={Math.min(i, 5) * 60} className="h-full">
-                <div className="card card-hover group flex h-full flex-col overflow-hidden">
-                  {/* Gradient banner */}
-                  <div className={`flex h-24 items-end bg-gradient-to-br gradient-animate ${bannerGradient(project.title)} p-4`}>
-                    <span className="text-sm font-bold text-white/90">{project.title.slice(0, 1).toUpperCase()}</span>
-                  </div>
+              <Reveal key={project.id} delay={Math.min(i, 5) * 60} className="mb-4 break-inside-avoid">
+                <div className="card card-hover group flex flex-col overflow-hidden">
+                  {/* Cover image (fallback: banner gradient hash-judul) */}
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cover}
+                      alt={project.title}
+                      loading="lazy"
+                      className="h-40 w-full object-cover"
+                    />
+                  ) : (
+                    <div className={`flex h-24 items-end bg-gradient-to-br gradient-animate ${bannerGradient(project.title)} p-4`}>
+                      <span className="text-sm font-bold text-white/90">{project.title.slice(0, 1).toUpperCase()}</span>
+                    </div>
+                  )}
                   <div className="flex flex-1 flex-col p-5">
                     <div className="mb-2 flex items-center justify-between">
-                      <LevelBadge level={project.level} />
+                      <div className="flex items-center gap-2">
+                        <LevelBadge level={project.level} />
+                        {demo && <span className="badge bg-brand-soft text-brand">🚀 Demo</span>}
+                      </div>
                       <span className="text-xs text-subtle">{project.commentIds.length} komentar</span>
                     </div>
                     <Link

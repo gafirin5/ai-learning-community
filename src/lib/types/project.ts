@@ -8,6 +8,10 @@ export interface Project {
   repoUrl: string;
   tags: string[];
   level: Level;
+  /** URL gambar cover (kolom projects.cover_image_url, migration 20260901000001). Kosong = pakai banner gradient. */
+  coverImageUrl?: string;
+  /** URL demo live (kolom projects.demo_url, migration 20260901000001). Kosong = tanpa tombol/badge Demo. */
+  demoUrl?: string;
   createdAt: string;
   commentIds: number[];
   likeCount: number;

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useStore } from "@/lib/store";
+import { claimReferralRemote } from "@/lib/store/growth-remote";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { useToast } from "@/components/toast";
 
 export default function RegisterPage() {
@@ -14,6 +16,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [referral, setReferral] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,6 +33,22 @@ export default function RegisterPage() {
     if (!res.ok) {
       setError(res.error ?? "Gagal mendaftar.");
       return;
+    }
+    // Klaim kode referral (best-effort, TIDAK memblokir onboarding).
+    if (referral.trim()) {
+      if (!isSupabaseConfigured()) {
+        console.warn("Kode referral dilewati: mode offline (Supabase belum dikonfigurasi).");
+      } else if (res.needsConfirmation) {
+        // Tanpa session (perlu konfirmasi email) RPC claim_referral akan gagal.
+        console.warn("Kode referral dilewati: konfirmasi email terlebih dahulu.");
+      } else {
+        try {
+          await claimReferralRemote(referral.trim());
+        } catch (e) {
+          // Gagal klaim bukan fatal — user tetap lanjut ke onboarding.
+          console.warn("Gagal klaim kode referral:", e);
+        }
+      }
     }
     toast(res.needsConfirmation ? "Cek email untuk konfirmasi" : "Akun berhasil dibuat");
     router.push("/onboarding");
@@ -106,6 +125,18 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
+            </div>
+            <div>
+              <label className="label" htmlFor="referral">Kode referral (opsional)</label>
+              <input
+                id="referral"
+                type="text"
+                className="input uppercase"
+                placeholder="Kode dari teman Anda"
+                value={referral}
+                onChange={(e) => setReferral(e.target.value)}
+                autoComplete="off"
+              />
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? "Memproses…" : "Daftar"}

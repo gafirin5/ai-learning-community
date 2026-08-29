@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { Project, ProjectComment } from "@/lib/types";
 import { todayKey } from "@/lib/utils/date";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isSupabaseConfigured, getSupabase } from "@/lib/supabase";
 import {
   addProjectRemote,
   addProjectCommentRemote,
@@ -12,9 +12,25 @@ import type { StateSetter, StoreState } from "./context";
 export function useProjectsActions(state: StoreState, setState: StateSetter) {
   const addProject = useCallback(
     async (data: Omit<Project, "id" | "userId" | "createdAt" | "commentIds" | "likeCount">) => {
+      const coverImageUrl = data.coverImageUrl ?? "";
+      const demoUrl = data.demoUrl ?? "";
       if (isSupabaseConfigured()) {
         const project = await addProjectRemote(data);
-        setState((s) => ({ ...s, projects: [project, ...s.projects] }));
+        // addProjectRemote (api-write, file lane lain) belum kenal kolom
+        // cover_image_url/demo_url — patch via update by id (RLS projects:
+        // update owner-or-admin; baris baru saja dibuat user ini).
+        if (coverImageUrl || demoUrl) {
+          const supabase = getSupabase();
+          const { error } = await supabase
+            .from("projects")
+            .update({ cover_image_url: coverImageUrl, demo_url: demoUrl })
+            .eq("id", project.id);
+          if (error) throw error;
+        }
+        setState((s) => ({
+          ...s,
+          projects: [{ ...project, coverImageUrl, demoUrl }, ...s.projects],
+        }));
         return;
       }
       const project: Project = {
