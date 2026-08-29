@@ -9,6 +9,7 @@ import { QuizPanel } from "@/components/quiz-panel";
 import { AIChatPanel } from "@/features/ai-tutor/components";
 import { TableOfContents } from "@/components/table-of-contents";
 import { useToast } from "@/components/toast";
+import { LabFlashcardsLessonLink } from "@/components/lab/lab-widgets";
 
 export default function LessonPage() {
   const params = useParams<{ slug: string; lessonId: string }>();
@@ -128,6 +129,9 @@ export default function LessonPage() {
                   <QuizPanel quiz={quiz} onScore={() => markLessonDone(lessonId, true)} />
                 </section>
               )}
+
+              {/* Lab: kartu hafalan pelajaran ini (gated flag) */}
+              <LabFlashcardsLessonLink lessonId={lessonId} />
 
               {/* Mark complete + navigation */}
               <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">

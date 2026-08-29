@@ -8,6 +8,7 @@ import { LevelBadge } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
 import { CountUp } from "@/components/count-up";
 import { RecommendedCourses } from "@/components/recommended-courses";
+import { LabFlashcardsWidget, LabPathsWidget } from "@/components/lab/lab-widgets";
 import { BADGE_DEFS } from "@/lib/store/gamification";
 
 export default function DashboardPage() {
@@ -169,6 +170,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent forum activity */}
+          <LabPathsWidget />
+          <LabFlashcardsWidget />
           <div className="card p-6">
             <h3 className="mb-4 font-semibold text-content">Aktivitas Forum Saya</h3>
             {state.threads.filter((t) => t.userId === currentUser.id).length === 0 ? (
