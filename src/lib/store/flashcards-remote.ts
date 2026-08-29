@@ -18,6 +18,16 @@ function num(v: unknown, fallback: number): number {
   return typeof v === "number" && Number.isFinite(v) ? v : fallback;
 }
 
+// Duplikasi kecil currentUid (api-write.ts) — RLS owner-only menolak insert
+// dengan user_id NULL (gotcha 42501), jadi uid wajib dikirim eksplisit.
+async function currentUid(): Promise<string> {
+  const supabase = getSupabase();
+  const { data } = await supabase.auth.getUser();
+  const id = data.user?.id;
+  if (!id) throw new Error("Login diperlukan.");
+  return id;
+}
+
 function mapRow(r: ProgressDbRow): FlashcardProgress {
   return {
     cardId: num(r.card_id, 0),
@@ -46,6 +56,7 @@ export async function upsertFlashcardReview(progress: FlashcardProgress): Promis
   }
   const { error } = await getSupabase().from("flashcard_progress").upsert(
     {
+      user_id: await currentUid(),
       card_id: progress.cardId,
       ease: progress.ease,
       interval_days: progress.intervalDays,
