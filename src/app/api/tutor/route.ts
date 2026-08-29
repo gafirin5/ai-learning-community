@@ -154,18 +154,25 @@ export async function POST(req: NextRequest) {
           fullText += decoder.decode(value, { stream: true });
         }
       } catch {
-        // koneksi upstream putus — client sudah menerima sebagian
+        // koneksi upstream putus ATAU client disconnect — client sudah menerima sebagian
       } finally {
-        controller.close();
+        // close() bisa throw bila stream sudah errored/closed (mis. client
+        // disconnect) — jangan biarkan itu mencegah pencatatan kuota.
+        try {
+          controller.close();
+        } catch {
+          /* sudah closed */
+        }
         // Estimasi token: ~4 char/token, minimum 100
         const estTokens = Math.max(100, Math.ceil(fullText.length / 4));
-        await userClient
-          .rpc("update_chat_quota", {
-            p_user_id: uuid,
-            p_tokens: estTokens,
-            p_reset_date: new Date().toISOString().slice(0, 10),
-          })
-          .catch(() => {});
+        const { error: quotaUpdateErr } = await userClient.rpc("update_chat_quota", {
+          p_user_id: uuid,
+          p_tokens: estTokens,
+          p_reset_date: new Date().toISOString().slice(0, 10),
+        });
+        if (quotaUpdateErr) {
+          console.error("[tutor] update_chat_quota failed:", quotaUpdateErr.message);
+        }
       }
     },
   });
