@@ -19,20 +19,6 @@ const LEVEL_FILTERS: Array<{ value: "semua" | Level; label: string }> = [
 
 type SortMode = "terbaru" | "populer";
 
-const GRADIENTS = [
-  "from-indigo-500 to-violet-600",
-  "from-emerald-500 to-teal-600",
-  "from-amber-500 to-orange-600",
-  "from-rose-500 to-pink-600",
-  "from-sky-500 to-blue-600",
-];
-
-function bannerGradient(title: string): string {
-  let hash = 0;
-  for (let i = 0; i < title.length; i++) hash = (hash * 31 + title.charCodeAt(i)) | 0;
-  return GRADIENTS[Math.abs(hash) % GRADIENTS.length];
-}
-
 export default function ProjectsPage() {
   const { state, currentUser, addProject, voteProject } = useStore();
   const { toast } = useToast();
@@ -117,10 +103,15 @@ export default function ProjectsPage() {
 
   return (
     <div className="container-app py-10">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="kop mb-6 flex flex-wrap items-end justify-between gap-3 pb-4">
         <div>
-          <h1 className="mb-1 text-3xl font-bold text-content">Showcase Proyek</h1>
-          <p className="text-muted">Lihat dan bagikan proyek AI/ML dari komunitas.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+            Register Karya · AI Learning Community
+          </p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-content">
+            Pamerkan karyamu.
+          </h1>
+          <p className="mt-1 text-muted">Lihat dan bagikan proyek AI/ML dari komunitas.</p>
         </div>
         {currentUser ? (
           <button onClick={() => setShowForm((v) => !v)} className="btn-primary">
@@ -228,7 +219,10 @@ export default function ProjectsPage() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" aria-hidden="true">
-            🔍
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="M16 16l4.5 4.5" />
+            </svg>
           </span>
           <input
             className="input pl-9"
@@ -284,7 +278,13 @@ export default function ProjectsPage() {
 
       {filtered.length === 0 ? (
         <EmptyState
-          icon="🚀"
+          icon={
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 4c3 0 6 3 6 6-2.5.5-4.5 2.5-5 5-3 0-6-3-6-6 .5-2.5 2.5-4.5 5-5z" />
+              <circle cx="14.5" cy="9.5" r="1.5" />
+              <path d="M9 15l-4 5M11.5 12.5L5 19" />
+            </svg>
+          }
           title="Belum ada proyek yang cocok"
           description="Coba ubah filter, atau publikasikan proyek Anda sendiri."
         />
@@ -299,7 +299,7 @@ export default function ProjectsPage() {
             return (
               <Reveal key={project.id} delay={Math.min(i, 5) * 60} className="mb-4 break-inside-avoid">
                 <div className="card card-hover group flex flex-col overflow-hidden">
-                  {/* Cover image (fallback: banner gradient hash-judul) */}
+                  {/* Cover: foto asli, atau sampul kertas berhuruf (tanpa gradien) */}
                   {cover ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -309,17 +309,29 @@ export default function ProjectsPage() {
                       className="h-40 w-full object-cover"
                     />
                   ) : (
-                    <div className={`flex h-24 items-end bg-gradient-to-br gradient-animate ${bannerGradient(project.title)} p-4`}>
-                      <span className="text-sm font-bold text-white/90">{project.title.slice(0, 1).toUpperCase()}</span>
+                    <div className="ruled flex h-24 items-end justify-between bg-brand-soft p-4">
+                      <span className="text-lg font-extrabold uppercase tracking-[0.09em] text-brand">
+                        {project.title.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="num-tabular text-xs text-subtle">
+                        {String(project.id).padStart(3, "0")}
+                      </span>
                     </div>
                   )}
                   <div className="flex flex-1 flex-col p-5">
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <LevelBadge level={project.level} />
-                        {demo && <span className="badge bg-brand-soft text-brand">🚀 Demo</span>}
+                        {demo && (
+                          <span className="badge text-brand">
+                            Demo
+                            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" className="h-3 w-3" aria-hidden="true">
+                              <path d="M7 4h9v9M16 4L6 14" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </span>
+                        )}
                       </div>
-                      <span className="text-xs text-subtle">{project.commentIds.length} komentar</span>
+                      <span className="num-tabular text-xs text-subtle">{project.commentIds.length} komentar</span>
                     </div>
                     <Link
                       href={`/projects/${project.id}`}

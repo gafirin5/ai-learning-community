@@ -12,6 +12,7 @@ import { useToast } from "@/components/toast";
 import { MarkdownLite } from "@/components/markdown-lite";
 import { ReactionBar } from "@/components/reactions";
 import { ImageGallery, ImageUpload } from "@/components/image-upload";
+import { formatTanggal } from "@/lib/format";
 import type { ForumCategoryId } from "@/lib/types";
 
 type SortMode = "terbaru" | "terpopuler";
@@ -212,7 +213,7 @@ export default function ForumPage() {
             }}
             className={`pill ${categoryFilter === c.id ? "pill-active" : "pill-idle"}`}
           >
-            {c.emoji} {c.label}
+            {c.label}
           </button>
         ))}
       </div>
@@ -221,15 +222,24 @@ export default function ForumPage() {
 
   return (
     <div className="container-app py-10">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="kop mb-6 flex flex-wrap items-end justify-between gap-3 pb-4">
         <div>
-          <h1 className="mb-1 text-3xl font-bold text-content">Forum Diskusi</h1>
-          <p className="text-muted">Diskusikan topik AI/ML bersama komunitas.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+            Papan Diskusi · AI Learning Community
+          </p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-content">
+            Angkat pertanyaanmu.
+          </h1>
+          <p className="mt-1 text-muted">Diskusikan topik AI/ML bersama komunitas.</p>
         </div>
         <div className="flex items-center gap-2">
           {isMentorOrAdmin && (
             <Link href="/forum/moderation" className="btn-secondary">
-              🛡️ Moderasi
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z" />
+                <path d="M9.5 12l1.8 1.8 3.4-3.6" />
+              </svg>
+              Moderasi
             </Link>
           )}
           {currentUser ? (
@@ -326,7 +336,10 @@ export default function ForumPage() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" aria-hidden="true">
-            🔍
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="M16 16l4.5 4.5" />
+            </svg>
           </span>
           <input
             className="input pl-9"
@@ -381,7 +394,10 @@ export default function ForumPage() {
           }}
           className={`pill ${savedOnly ? "pill-active" : "pill-idle"}`}
         >
-          🔖 Disimpan
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-3.5 w-3.5" aria-hidden="true">
+            <path d="M5 4.5A1.5 1.5 0 016.5 3h7A1.5 1.5 0 0115 4.5v12l-5-3.5L5 16.5v-12z" strokeLinejoin="round" />
+          </svg>
+          Disimpan
         </button>
       </div>
 
@@ -416,7 +432,11 @@ export default function ForumPage() {
       {/* Thread list */}
       {threads.length === 0 ? (
         <EmptyState
-          icon="💬"
+          icon={
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H9l-4 4v-4H6a2 2 0 01-2-2V6z" />
+            </svg>
+          }
           title="Tidak ada thread yang cocok"
           description="Coba kata kunci atau filter lain, atau buat thread baru."
         />
@@ -528,7 +548,12 @@ export default function ForumPage() {
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex flex-wrap items-center gap-2">
                       {thread.pinned && (
-                        <span className="badge bg-warning-soft text-warning">📌 Disematkan</span>
+                        <span className="badge text-warning">
+                          <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3" aria-hidden="true">
+                            <path d="M12.6 2.4a1 1 0 00-1.4 0l-.7.7 4.4 4.4.7-.7a1 1 0 000-1.4l-3-3zM9.8 3.8L4 9.6V13l-1.5 1.5a1 1 0 001.4 1.4L5.4 14.4H9l5.8-5.8-5-4.8z" />
+                          </svg>
+                          Disematkan
+                        </span>
                       )}
                       <Link
                         href={`/forum/${thread.id}`}
@@ -537,9 +562,14 @@ export default function ForumPage() {
                         {thread.title}
                       </Link>
                       {thread.acceptedCommentId != null ? (
-                        <span className="badge bg-success-soft text-success">✓ Terjawab</span>
+                        <span className="badge text-success">
+                          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3" aria-hidden="true">
+                            <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          Terjawab
+                        </span>
                       ) : (
-                        <span className="badge bg-surface-hover text-muted">Belum terjawab</span>
+                        <span className="badge text-muted">Belum terjawab</span>
                       )}
                     </div>
                     <p className="mb-3 line-clamp-2 text-sm text-muted">{thread.body}</p>
@@ -557,14 +587,20 @@ export default function ForumPage() {
                         <span>{author?.name ?? "Pengguna"}</span>
                       </Link>
                       <span>·</span>
-                      <span>{thread.createdAt}</span>
+                      <span className="num-tabular">{formatTanggal(thread.createdAt)}</span>
                       <span>·</span>
                       <span>{commentCount} komentar</span>
                       <span>·</span>
-                      <span>👁 {thread.viewCount ?? 0}</span>
+                      <span className="flex items-center gap-1">
+                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+                          <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                        <span className="num-tabular">{thread.viewCount ?? 0}</span>
+                      </span>
                       {category && (
-                        <span className="badge bg-surface-hover text-muted">
-                          {category.emoji} {category.label}
+                        <span className="badge text-muted">
+                          {category.label}
                         </span>
                       )}
                       <span className="ml-auto flex flex-wrap items-center gap-1.5">
