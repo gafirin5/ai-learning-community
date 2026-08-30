@@ -133,7 +133,16 @@ export function QuizPanel({
           </button>
         </div>
       ) : (
-        <div className="card animate-pop-in flex flex-col items-center gap-3 bg-brand-soft/50 p-6 text-center">
+        <div className="card relative animate-slide-up flex flex-col items-center gap-3 bg-brand-soft/50 p-6 pt-8 text-center">
+          {/* Momen fokal: stempel nilai menghentak di atas lembar hasil. */}
+          <span
+            aria-hidden="true"
+            className={`stamp absolute -top-4 right-3 animate-stamp-hit border-[3px] text-lg sm:text-xl sm:-top-5 sm:right-5 ${
+              score >= 70 ? "text-success" : "text-danger"
+            }`}
+          >
+            {score >= 70 ? "Lulus" : "Ulangi"}
+          </span>
           <p className="text-lg font-bold text-content">
             Skor Anda: {score}% ({correctCount}/{total})
           </p>

@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
- * Reveals children with a fade/slide transition when they scroll into view.
- * Uses IntersectionObserver and only animates once. Falls back to fully
- * visible (no animation) for users who prefer reduced motion.
+ * Reveal gaya "tinta tertulis": konten terungkap kiri→kanan (clip-path)
+ * dengan sedikit naik, seperti baris register yang baru selesai ditulis.
+ * IntersectionObserver, hanya sekali. Reduced motion → langsung tampak.
  */
 export function Reveal({
   children,
@@ -49,10 +49,13 @@ export function Reveal({
   return (
     <Tag
       ref={ref as never}
-      className={`${className} transition-all duration-500 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-      }`}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      className={`${className} transition-[clip-path,opacity,transform] duration-500 ease-out`}
+      style={{
+        transitionDelay: delay ? `${delay}ms` : undefined,
+        clipPath: visible ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(6px)",
+      }}
     >
       {children}
     </Tag>

@@ -1,5 +1,39 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
+/**
+ * Bar progres = tinta merambat di kertas: terisi sekali saat pertama
+ * terlihat (scaleX, bukan width), lalu transisi halus saat nilai berubah.
+ * Reduced motion → langsung terisi.
+ */
+function useInkFilled<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [filled, setFilled] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setFilled(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setFilled(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, filled };
+}
+
 export function ProgressBar({
   value,
   className = "",
@@ -9,11 +43,13 @@ export function ProgressBar({
   className?: string;
   tone?: "brand" | "success" | "warning";
 }) {
+  const { ref, filled } = useInkFilled<HTMLDivElement>();
   const clamped = Math.max(0, Math.min(100, value));
   const toneCls =
     tone === "success" ? "bg-success" : tone === "warning" ? "bg-warning" : "bg-brand";
   return (
     <div
+      ref={ref}
       className={`h-2 overflow-hidden rounded-full bg-surface-hover ${className}`}
       role="progressbar"
       aria-valuenow={Math.round(clamped)}
@@ -21,8 +57,8 @@ export function ProgressBar({
       aria-valuemax={100}
     >
       <div
-        className={`relative h-full overflow-hidden rounded-full transition-all duration-500 ${toneCls}`}
-        style={{ width: `${clamped}%` }}
+        className={`relative h-full w-full origin-left rounded-full transition-transform duration-700 ease-out ${toneCls}`}
+        style={{ transform: `scaleX(${filled ? clamped / 100 : 0})` }}
       >
         {clamped > 0 && (
           <span
@@ -51,13 +87,16 @@ export function ProgressRing({
   strokeWidth?: number;
   label?: string;
 }) {
+  const { ref, filled } = useInkFilled<HTMLDivElement>();
   const clamped = Math.max(0, Math.min(100, value));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (clamped / 100) * circumference;
+  const target = circumference - (clamped / 100) * circumference;
+  const offset = filled ? target : circumference;
 
   return (
     <div
+      ref={ref}
       className="relative inline-flex items-center justify-center"
       style={{ width: size, height: size }}
     >
@@ -80,7 +119,7 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className="transition-all duration-500"
+          className="transition-[stroke-dashoffset] duration-700 ease-out"
         />
       </svg>
       <span className="absolute text-sm font-bold text-content">
