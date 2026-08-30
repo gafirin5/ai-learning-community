@@ -1,3 +1,15 @@
 {
-  "buildPath": "code"
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "createdAt": "2026-08-30T14:16:07.539Z",
+        "reason": "Kop eyebrow (baris pengantar dokumen resmi) 11px tracking-0.14em dipakai konsisten sebagai perangkat dunia Rapor & Register di 8+ halaman; langkah ramp yang disanksikan"
+      }
+    ]
+  }
 }
