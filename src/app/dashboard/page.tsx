@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useStore } from "@/lib/store";
-import { ProgressBar, ProgressRing } from "@/components/progress";
+import { ProgressBar } from "@/components/progress";
 import { LevelBadge } from "@/components/ui";
 import { Reveal } from "@/components/reveal";
-import { CountUp } from "@/components/count-up";
 import { RecommendedCourses } from "@/components/recommended-courses";
 import { LabFlashcardsWidget, LabPathsWidget } from "@/components/lab/lab-widgets";
 import { BADGE_DEFS } from "@/lib/store/gamification";
@@ -40,7 +39,7 @@ export default function DashboardPage() {
     return (
       <div className="container-app py-16 text-center">
         <h1 className="mb-3 text-2xl font-bold text-content">Silakan masuk dahulu</h1>
-        <p className="mb-6 text-muted">Dashboard hanya tersedia untuk pengguna yang sudah masuk.</p>
+        <p className="mb-6 text-muted">Rapor hanya tersedia untuk siswa yang sudah masuk.</p>
         <Link href="/login" className="btn-primary">
           Masuk
         </Link>
@@ -50,91 +49,117 @@ export default function DashboardPage() {
 
   return (
     <div className="container-app py-10">
-      <div className="mb-8">
-        <h1 className="mb-1 text-3xl font-bold text-content">Selamat datang, {currentUser.name} 👋</h1>
-        <p className="text-muted">Pantau progres belajar Anda di sini.</p>
-      </div>
-
-      {/* Stats row */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
-        <Reveal className="h-full">
-          <div className="card h-full p-6 flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-soft text-2xl" aria-hidden="true">
-              🔥
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-content">
-                <CountUp value={state.activity.streak} />
-              </p>
-              <p className="text-sm text-muted">Hari beruntun</p>
-            </div>
-          </div>
-        </Reveal>
-        <Reveal delay={80} className="h-full">
-          <div className="card h-full p-6 flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success-soft text-2xl" aria-hidden="true">
-              ✅
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-content">
-                <CountUp value={completedLessons} />
-              </p>
-              <p className="text-sm text-muted">Pelajaran selesai</p>
-            </div>
-          </div>
-        </Reveal>
-        <Reveal delay={160} className="h-full">
-          <div className="card h-full p-6 flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-warning-soft text-2xl" aria-hidden="true">
-              🎯
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-content">
-                <CountUp value={avgScore} suffix="%" />
-              </p>
-              <p className="text-sm text-muted">Rata-rata skor kuis</p>
-            </div>
-          </div>
-        </Reveal>
+      {/* Kop rapor */}
+      <div className="kop mb-8 flex flex-wrap items-end justify-between gap-3 pb-4">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+            Rapor Belajar · AI Learning Community
+          </p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-content">
+            {currentUser.name}
+          </h1>
+          <p className="num-tabular mt-0.5 text-sm text-muted">
+            NIS {String(currentUser.id).padStart(4, "0")} · {currentUser.email}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="badge text-brand">{currentUser.role}</span>
+          <span className="badge text-success">
+            Streak {state.activity.streak} hari
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Continue learning + overall */}
+        {/* Kolom utama */}
         <div className="space-y-6 lg:col-span-2">
-          {resume && (
-            <div className="card overflow-hidden">
-              <div className="border-b border-border bg-brand-soft/50 px-6 py-4">
-                <h2 className="font-semibold text-content">Lanjut Belajar</h2>
-              </div>
-              <div className="p-6">
-                {(() => {
-                  const lesson = lessonById.get(resume.lessonId);
-                  const course = courses.find((c) => c.id === lesson?.courseId);
-                  if (!lesson || !course) return null;
-                  return (
-                    <Link
-                      href={`/courses/${resume.courseSlug}/lessons/${resume.lessonId}`}
-                      className="group flex items-center gap-4 rounded-xl border border-border p-4 transition-colors hover:bg-surface-hover"
-                    >
-                      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand text-white" aria-hidden="true">
-                        ▶
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs text-subtle">{course.title}</p>
-                        <p className="truncate font-semibold text-content group-hover:text-brand">
-                          {lesson.title}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })()}
-              </div>
+          {/* Rekap nilai — buku besar, bukan kartu metrik */}
+          <div className="card overflow-hidden">
+            <div className="kop px-6 pb-3 pt-5">
+              <h2 className="font-bold uppercase tracking-[0.09em] text-content">
+                Rekap Nilai
+              </h2>
             </div>
-          )}
+            <table className="table-ledger">
+              <tbody>
+                <tr>
+                  <td className="text-muted">Pelajaran selesai</td>
+                  <td className="num-tabular text-right text-lg font-bold text-content">
+                    {completedLessons}
+                    <span className="text-sm font-normal text-subtle"> / {totalLessons}</span>
+                  </td>
+                  <td className="w-28 sm:w-44">
+                    <ProgressBar value={overallPct} />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-muted">Rata-rata skor kuis</td>
+                  <td className="num-tabular text-right text-lg font-bold text-content">
+                    {avgScore ? `${avgScore}%` : "—"}
+                  </td>
+                  <td>
+                    <ProgressBar value={avgScore} />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-muted">Hari belajar beruntun</td>
+                  <td className="num-tabular text-right text-lg font-bold text-content">
+                    {state.activity.streak}
+                    <span className="text-sm font-normal text-subtle"> hari</span>
+                  </td>
+                  <td>
+                    <ProgressBar value={Math.min(100, state.activity.streak * 10)} />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-muted">Poin belajar</td>
+                  <td className="num-tabular text-right text-lg font-bold text-brand">
+                    {state.points}
+                  </td>
+                  <td>
+                    <Link href="/leaderboard" className="text-sm font-semibold text-brand hover:underline">
+                      Peringkat →
+                    </Link>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          {/* Course progress */}
+          {/* Lanjut belajar — jejak tinta yang memudar */}
+          {resume &&
+            (() => {
+              const lesson = lessonById.get(resume.lessonId);
+              const course = courses.find((c) => c.id === lesson?.courseId);
+              if (!lesson || !course) return null;
+              return (
+                <Link
+                  href={`/courses/${resume.courseSlug}/lessons/${resume.lessonId}`}
+                  className="card card-hover group block px-6 py-5"
+                >
+                  <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-subtle">
+                    Lanjutkan dari sini
+                  </p>
+                  <p className="mt-1.5 truncate font-bold text-content group-hover:text-brand">
+                    {lesson.title}
+                  </p>
+                  <p className="text-sm text-muted">{course.title}</p>
+                  <span
+                    className="mt-3 block h-[2px] w-40 rounded-full transition-all duration-300 group-hover:w-64"
+                    style={{
+                      background: "linear-gradient(to right, var(--brand), transparent)",
+                    }}
+                    aria-hidden="true"
+                  />
+                </Link>
+              );
+            })()}
+
+          {/* Progres per kursus */}
           <div className="card p-6">
-            <h2 className="mb-4 font-semibold text-content">Progres Kursus</h2>
+            <h2 className="kop mb-4 pb-2 font-bold uppercase tracking-[0.09em] text-content">
+              Nilai per Mata Pelajaran
+            </h2>
             <div className="space-y-4">
               {courses.map((course, i) => {
                 const pct = courseProgressPercent(course);
@@ -148,7 +173,10 @@ export default function DashboardPage() {
                         >
                           {course.title}
                         </Link>
-                        <span className="shrink-0 text-sm text-muted">{pct}%</span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          <LevelBadge level={course.level} />
+                          <span className="num-tabular text-sm text-muted">{pct}%</span>
+                        </span>
                       </div>
                       <ProgressBar value={pct} />
                     </div>
@@ -159,21 +187,25 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right column */}
+        {/* Kolom samping */}
         <div className="space-y-6">
-          <div className="card flex flex-col items-center p-6 text-center">
-            <h3 className="mb-4 font-semibold text-content">Pencapaian Keseluruhan</h3>
-            <ProgressRing value={overallPct} size={96} strokeWidth={8} />
-            <p className="mt-3 text-sm text-muted">
+          <div className="card px-6 py-5 text-center">
+            <h3 className="kop mb-4 pb-2 text-left font-bold uppercase tracking-[0.09em] text-content">
+              Pencapaian Keseluruhan
+            </h3>
+            <p className="num-tabular text-5xl font-extrabold text-brand">{overallPct}%</p>
+            <p className="mt-2 text-sm text-muted">
               {completedLessons} dari {totalLessons} pelajaran selesai
             </p>
           </div>
 
-          {/* Recent forum activity */}
           <LabPathsWidget />
           <LabFlashcardsWidget />
+
           <div className="card p-6">
-            <h3 className="mb-4 font-semibold text-content">Aktivitas Forum Saya</h3>
+            <h3 className="kop mb-4 pb-2 font-bold uppercase tracking-[0.09em] text-content">
+              Aktivitas Forum Saya
+            </h3>
             {state.threads.filter((t) => t.userId === currentUser.id).length === 0 ? (
               <p className="text-sm text-muted">
                 Anda belum membuat thread.{" "}
@@ -191,7 +223,7 @@ export default function DashboardPage() {
                       <Link href={`/forum/${t.id}`} className="text-sm font-medium text-content hover:text-brand">
                         {t.title}
                       </Link>
-                      <div className="flex items-center gap-2 text-xs text-muted">
+                      <div className="num-tabular flex items-center gap-2 text-xs text-muted">
                         <span>{t.commentIds.length} komentar</span>
                         <span>·</span>
                         <span>{t.voteCount} vote</span>
@@ -202,31 +234,26 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Bookmarks */}
           <RecommendedCourses />
           {state.badges.length > 0 && (
             <div className="card p-6">
-              <h3 className="mb-3 font-semibold text-content">Lencana</h3>
+              <h3 className="kop mb-3 pb-2 font-bold uppercase tracking-[0.09em] text-content">
+                Stempel Prestasi
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {state.badges.map((bid) => {
                   const b = BADGE_DEFS.find((x) => x.id === bid);
                   if (!b) return null;
-                  return <span key={bid} className="badge bg-warning-soft text-warning" title={b.description}>{b.emoji} {b.label}</span>;
+                  return <span key={bid} className="badge text-warning" title={b.description}>{b.label}</span>;
                 })}
               </div>
             </div>
           )}
-          {state.points > 0 && (
-            <div className="card p-6">
-              <h3 className="mb-2 font-semibold text-content">Poin</h3>
-              <p className="text-2xl font-bold text-brand">{state.points}</p>
-              <p className="text-xs text-muted">Terus selesaikan pelajaran & kuis untuk naik peringkat.</p>
-              <Link href="/leaderboard" className="btn-secondary mt-3 w-full text-center">Lihat Leaderboard</Link>
-            </div>
-          )}
           {state.bookmarks.length > 0 && (
             <div className="card p-6">
-              <h3 className="mb-4 font-semibold text-content">Kursus Tersimpan</h3>
+              <h3 className="kop mb-4 pb-2 font-bold uppercase tracking-[0.09em] text-content">
+                Kursus Tersimpan
+              </h3>
               <ul className="space-y-3">
                 {state.bookmarks.map((id) => {
                   const course = courses.find((c) => c.id === id);

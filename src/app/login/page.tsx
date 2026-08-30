@@ -39,11 +39,16 @@ export default function LoginPage() {
     <div className="container-app flex min-h-[70vh] items-center justify-center py-12">
       <div className="w-full max-w-md">
         <div className="card p-8">
-          <h1 className="mb-1 text-2xl font-bold text-content">Masuk</h1>
-          <p className="mb-6 text-sm text-muted">Lanjutkan perjalanan belajar Anda.</p>
+          <div className="kop mb-6 pb-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+              Kartu Akses · AI Learning Community
+            </p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-content">Masuk</h1>
+            <p className="mt-0.5 text-sm text-muted">Lanjutkan perjalanan belajar Anda.</p>
+          </div>
 
           {error && (
-            <div className="mb-4 rounded-lg border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-content">
+            <div className="mb-4 rounded-[4px] border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-content">
               {error}
             </div>
           )}
@@ -98,9 +103,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 rounded-lg bg-surface-hover p-4 text-xs text-muted">
-            <p className="mb-1 font-semibold text-content">Akun demo:</p>
-            <ul className="space-y-0.5">
+          <div className="mt-6 rounded-[4px] border border-border bg-surface-hover p-4 text-xs text-muted">
+            <p className="mb-1 font-bold uppercase tracking-[0.06em] text-content">Akun demo:</p>
+            <ul className="num-tabular space-y-0.5">
               <li>learner — budi@example.com</li>
               <li>mentor — sari@example.com</li>
               <li>admin — admin@example.com</li>

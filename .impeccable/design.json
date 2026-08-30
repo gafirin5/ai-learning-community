@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-29",
+  "title": "Design System: AI Learning Community",
+  "extensions": {
+    "colorMeta": {
+      "paper":        { "role": "neutral", "displayName": "Kertas HVS", "canonical": "#edf0f2", "dark": "#121523", "tonalRamp": ["oklch(15% 0.01 240)", "oklch(26% 0.012 240)", "oklch(37% 0.014 240)", "oklch(48% 0.014 240)", "oklch(59% 0.014 240)", "oklch(70% 0.012 240)", "oklch(81% 0.01 240)", "oklch(92% 0.007 240)"] },
+      "sheet":        { "role": "neutral", "displayName": "Lembar", "canonical": "#fcfcfd", "dark": "#1a1e31", "tonalRamp": ["oklch(15% 0.01 240)", "oklch(26% 0.012 240)", "oklch(37% 0.014 240)", "oklch(48% 0.014 240)", "oklch(59% 0.014 240)", "oklch(70% 0.012 240)", "oklch(81% 0.01 240)", "oklch(92% 0.007 240)"] },
+      "sheet-raised": { "role": "neutral", "displayName": "Lembar Terang", "canonical": "#ffffff", "dark": "#20253c", "tonalRamp": ["oklch(15% 0.01 240)", "oklch(26% 0.012 240)", "oklch(37% 0.014 240)", "oklch(48% 0.014 240)", "oklch(59% 0.014 240)", "oklch(70% 0.012 240)", "oklch(81% 0.01 240)", "oklch(92% 0.007 240)"] },
+      "sheet-hover":  { "role": "neutral", "displayName": "Lembar Sentuh", "canonical": "#f1f4f6", "dark": "#232944", "tonalRamp": ["oklch(15% 0.01 240)", "oklch(26% 0.012 240)", "oklch(37% 0.014 240)", "oklch(48% 0.014 240)", "oklch(59% 0.014 240)", "oklch(70% 0.012 240)", "oklch(81% 0.01 240)", "oklch(92% 0.007 240)"] },
+      "line":         { "role": "neutral", "displayName": "Garis", "canonical": "#d6dade", "dark": "#2f3554", "tonalRamp": ["oklch(15% 0.012 240)", "oklch(26% 0.015 240)", "oklch(37% 0.017 240)", "oklch(48% 0.017 240)", "oklch(59% 0.017 240)", "oklch(70% 0.015 240)", "oklch(81% 0.012 240)", "oklch(92% 0.008 240)"] },
+      "ink":          { "role": "neutral", "displayName": "Tinta Pulpen Biru-Hitam", "canonical": "#232946", "dark": "#e7e9f6", "tonalRamp": ["oklch(15% 0.035 265)", "oklch(26% 0.05 265)", "oklch(37% 0.06 265)", "oklch(48% 0.06 265)", "oklch(59% 0.055 265)", "oklch(70% 0.045 265)", "oklch(81% 0.03 265)", "oklch(92% 0.02 265)"] },
+      "ink-muted":    { "role": "neutral", "displayName": "Tinta Pudar", "canonical": "#575d7a", "dark": "#a9aecb", "tonalRamp": ["oklch(15% 0.035 265)", "oklch(26% 0.05 265)", "oklch(37% 0.06 265)", "oklch(48% 0.06 265)", "oklch(59% 0.055 265)", "oklch(70% 0.045 265)", "oklch(81% 0.03 265)", "oklch(92% 0.02 265)"] },
+      "ink-subtle":   { "role": "neutral", "displayName": "Tinta Samar", "canonical": "#6f7590", "dark": "#8f94b3", "tonalRamp": ["oklch(15% 0.035 265)", "oklch(26% 0.05 265)", "oklch(37% 0.06 265)", "oklch(48% 0.06 265)", "oklch(59% 0.055 265)", "oklch(70% 0.045 265)", "oklch(81% 0.03 265)", "oklch(92% 0.02 265)"] },
+      "indigo":       { "role": "primary", "displayName": "Tinta Aksi (Indigo, TERKUNCI)", "canonical": "#4f46e5", "dark": "#8f97fa", "tonalRamp": ["oklch(15% 0.05 277)", "oklch(26% 0.11 277)", "oklch(37% 0.16 277)", "oklch(48% 0.2 277)", "oklch(55% 0.21 277)", "oklch(70% 0.15 277)", "oklch(81% 0.09 277)", "oklch(92% 0.04 277)"] },
+      "indigo-hover": { "role": "primary", "displayName": "Tinta Aksi Tekan", "canonical": "#3f38c9", "dark": "#aab1fc", "tonalRamp": ["oklch(15% 0.05 277)", "oklch(26% 0.11 277)", "oklch(37% 0.16 277)", "oklch(48% 0.2 277)", "oklch(55% 0.21 277)", "oklch(70% 0.15 277)", "oklch(81% 0.09 277)", "oklch(92% 0.04 277)"] },
+      "indigo-soft":  { "role": "primary", "displayName": "Tanah Indigo Lembut", "canonical": "#e9eafb", "dark": "#262a55", "tonalRamp": ["oklch(15% 0.05 277)", "oklch(26% 0.11 277)", "oklch(37% 0.16 277)", "oklch(48% 0.2 277)", "oklch(55% 0.21 277)", "oklch(70% 0.15 277)", "oklch(81% 0.09 277)", "oklch(92% 0.04 277)"] },
+      "indigo-ring":  { "role": "primary", "displayName": "Cincin Fokus Indigo", "canonical": "rgb(79 70 229 / 0.32)", "dark": "rgb(143 151 250 / 0.4)", "tonalRamp": ["oklch(15% 0.05 277)", "oklch(26% 0.11 277)", "oklch(37% 0.16 277)", "oklch(48% 0.2 277)", "oklch(55% 0.21 277)", "oklch(70% 0.15 277)", "oklch(81% 0.09 277)", "oklch(92% 0.04 277)"] },
+      "stamp-green":      { "role": "secondary", "displayName": "Tinta Stempel Hijau", "canonical": "#1f7a4d", "dark": "#66c795", "tonalRamp": ["oklch(15% 0.03 155)", "oklch(26% 0.06 155)", "oklch(37% 0.09 155)", "oklch(48% 0.11 155)", "oklch(59% 0.12 155)", "oklch(70% 0.11 155)", "oklch(81% 0.08 155)", "oklch(92% 0.04 155)"] },
+      "stamp-green-soft": { "role": "secondary", "displayName": "Tanah Stempel Hijau", "canonical": "#e2f2e8", "dark": "#1b3226", "tonalRamp": ["oklch(15% 0.03 155)", "oklch(26% 0.06 155)", "oklch(37% 0.09 155)", "oklch(48% 0.11 155)", "oklch(59% 0.12 155)", "oklch(70% 0.11 155)", "oklch(81% 0.08 155)", "oklch(92% 0.04 155)"] },
+      "stamp-amber":      { "role": "secondary", "displayName": "Tinta Stempel Kuning", "canonical": "#976a00", "dark": "#d9ab46", "tonalRamp": ["oklch(15% 0.03 85)", "oklch(26% 0.06 85)", "oklch(37% 0.09 85)", "oklch(48% 0.12 85)", "oklch(59% 0.13 85)", "oklch(70% 0.12 85)", "oklch(81% 0.09 85)", "oklch(92% 0.05 85)"] },
+      "stamp-amber-soft": { "role": "secondary", "displayName": "Tanah Stempel Kuning", "canonical": "#f6efd9", "dark": "#332a12", "tonalRamp": ["oklch(15% 0.03 85)", "oklch(26% 0.06 85)", "oklch(37% 0.09 85)", "oklch(48% 0.12 85)", "oklch(59% 0.13 85)", "oklch(70% 0.12 85)", "oklch(81% 0.09 85)", "oklch(92% 0.05 85)"] },
+      "stamp-red":        { "role": "secondary", "displayName": "Tinta Stempel Merah", "canonical": "#b3372e", "dark": "#e57063", "tonalRamp": ["oklch(15% 0.04 25)", "oklch(26% 0.08 25)", "oklch(37% 0.12 25)", "oklch(48% 0.15 25)", "oklch(59% 0.16 25)", "oklch(70% 0.14 25)", "oklch(81% 0.1 25)", "oklch(92% 0.05 25)"] },
+      "stamp-red-soft":   { "role": "secondary", "displayName": "Tanah Stempel Merah", "canonical": "#f8e7e4", "dark": "#3d1e1a", "tonalRamp": ["oklch(15% 0.04 25)", "oklch(26% 0.08 25)", "oklch(37% 0.12 25)", "oklch(48% 0.15 25)", "oklch(59% 0.16 25)", "oklch(70% 0.14 25)", "oklch(81% 0.1 25)", "oklch(92% 0.05 25)"] },
+      "code-well":    { "role": "tertiary", "displayName": "Kode Karbon (Well)", "canonical": "#14172b", "dark": "#0e1120", "tonalRamp": ["oklch(15% 0.04 265)", "oklch(26% 0.055 265)", "oklch(37% 0.065 265)", "oklch(48% 0.065 265)", "oklch(59% 0.06 265)", "oklch(70% 0.05 265)", "oklch(81% 0.035 265)", "oklch(92% 0.02 265)"] },
+      "code-ink":     { "role": "tertiary", "displayName": "Tinta Kode", "canonical": "#dfe3f5", "dark": "#dfe3f5", "tonalRamp": ["oklch(15% 0.04 265)", "oklch(26% 0.055 265)", "oklch(37% 0.065 265)", "oklch(48% 0.065 265)", "oklch(59% 0.06 265)", "oklch(70% 0.05 265)", "oklch(81% 0.035 265)", "oklch(92% 0.02 265)"] }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display", "purpose": "Hero command only (\"Isi rapormu.\"); 800, tracking -0.025em, line-height 1.04." },
+      "headline": { "displayName": "Headline", "purpose": "Page h1, always under a kop rule with an 11px uppercase eyebrow above." },
+      "title":    { "displayName": "Title", "purpose": "Section h2 and card titles; 800, tracking -0.025em." },
+      "body":     { "displayName": "Body", "purpose": "Paragraphs in ink-muted; intro paragraphs at text-lg / line-height 2; lesson prose 15px/1.87." },
+      "label":    { "displayName": "Label", "purpose": "Form labels (xs, 700, uppercase, tracking 0.06em) and kop eyebrows (11px, tracking 0.09-0.14em)." },
+      "entry":    { "displayName": "Entry (Spline Sans Mono)", "purpose": "Register hand: emails, code, IDs, machine data." }
+    },
+    "shadows": [
+      { "name": "sheet-rest", "value": "0 1px 2px 0 rgb(15 23 42 / 0.04)", "purpose": "Every card at rest (shadow-xs). Depth is drawn, not lit." },
+      { "name": "sheet-lift", "value": "0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.06)", "purpose": "Hover lift on cards, paired with a 2px rise." },
+      { "name": "sheet-lift-md", "value": "0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04)", "purpose": "Stronger hover step (shadow-md) on .card-hover." },
+      { "name": "the-open-sheet", "value": "0 12px 32px -8px rgb(15 23 42 / 0.14)", "purpose": "The hero rapor sheet only — one per screen." },
+      { "name": "menu", "value": "0 24px 56px -12px rgb(15 23 42 / 0.2)", "purpose": "Dropdowns and popovers." },
+      { "name": "action-glow", "value": "0 6px 16px -6px var(--brand-ring)", "purpose": "Primary button hover only." },
+      { "name": "kop-rule", "value": "0 6px 0 -5px var(--content)", "purpose": "Not elevation: the thin half of the .kop letterhead double rule." }
+    ],
+    "motion": [
+      { "name": "stamp-in", "value": "stamp-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both — from scale(1.6) rotate(-10deg) through scale(0.96) rotate(-2deg) at 60% to rest rotate(-2deg)", "purpose": "Rubber stamps thump onto the paper when they appear." },
+      { "name": "ink-draw", "value": "scroll-linked stroke-dashoffset (SVG path, 2.5px round cap), rAF-throttled; fully drawn under prefers-reduced-motion", "purpose": "The Ink Line signature draws Jalur Belajar as the visitor scrolls." },
+      { "name": "reveal", "value": "fade + translateY(16px→0), 500ms ease-out, once, IntersectionObserver 0.1 / -40px rootMargin", "purpose": "Incumbent scroll-in for content blocks (Reveal component)." },
+      { "name": "fade-in", "value": "fade-in 0.2s ease-out", "purpose": "Sheets and states appearing in place." },
+      { "name": "slide-up", "value": "slide-up 0.25s ease-out (8px rise)", "purpose": "Rows and small blocks entering." },
+      { "name": "pop-in", "value": "pop-in 0.15s ease-out (scale 0.96→1)", "purpose": "Menus and popovers." },
+      { "name": "toast-in", "value": "toast-in 0.2s ease-out (12px rise, scale 0.98→1)", "purpose": "Toasts." },
+      { "name": "shimmer", "value": "shimmer 1.6s linear infinite (200% gradient sweep)", "purpose": "Skeleton loading and progress-bar sheen." },
+      { "name": "theme-crossfade", "value": "background-color 0.25s ease, color 0.25s ease on body; link color 0.15s", "purpose": "Light↔dark carbon-copy switch reads as re-inking, not a flash." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid indigo action ink, near-square 5px corners, pen-press active. Dark mode pins the fill to #4f46e5 (hover #5b52ee) for white-text contrast.",
+      "html": "<button class='ds-btn-primary'>Mulai — Isi Rapormu</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--brand,#4f46e5);color:#fff;border:none;border-radius:5px;padding:10px 16px;font:600 14px/1.4 Archivo,system-ui,sans-serif;letter-spacing:.01em;cursor:pointer;transition:all .15s ease}.ds-btn-primary:hover{background:var(--brand-hover,#3f38c9);box-shadow:0 6px 16px -6px var(--brand-ring,rgb(79 70 229/.32))}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg,#edf0f2),0 0 0 4px var(--brand-ring,rgb(79 70 229/.32))}.ds-btn-primary:disabled{cursor:not-allowed;opacity:.5}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined sheet button — the quiet counterweight to the primary fill.",
+      "html": "<button class='ds-btn-secondary'>Jelajahi Kursus</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--surface,#fcfcfd);color:var(--content,#232946);border:1px solid var(--border,#d6dade);border-radius:5px;padding:10px 16px;font:600 14px/1.4 Archivo,system-ui,sans-serif;letter-spacing:.01em;cursor:pointer;transition:background .15s ease}.ds-btn-secondary:hover{background:var(--surface-hover,#f1f4f6)}.ds-btn-secondary:active{transform:translateY(1px)}.ds-btn-secondary:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg,#edf0f2),0 0 0 4px var(--brand-ring,rgb(79 70 229/.32))}"
+    },
+    {
+      "name": "Form Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Uppercase tracked label above a 4px input with indigo caret and focus ring.",
+      "html": "<div style='max-width:320px'><label class='ds-label' for='ds-email'>Email</label><input id='ds-email' class='ds-input' placeholder='nama@contoh.com'></div>",
+      "css": ".ds-label{display:block;margin-bottom:6px;font:700 12px/1.3 Archivo,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#575d7a)}.ds-input{width:100%;background:var(--surface,#fcfcfd);color:var(--content,#232946);border:1px solid var(--border,#d6dade);border-radius:4px;padding:10px 14px;font:400 14px/1.4 Archivo,system-ui,sans-serif;caret-color:var(--brand,#4f46e5)}.ds-input::placeholder{color:var(--subtle,#6f7590)}.ds-input:focus{outline:none;border-color:var(--brand,#4f46e5);box-shadow:0 0 0 2px var(--brand-ring,rgb(79 70 229/.32))}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A plain sheet: 6px corners, 1px line border, whisper shadow; hover lifts 2px and inks the border indigo.",
+      "html": "<div class='ds-card ds-card-hover' style='max-width:320px;padding:20px'><p class='ds-card-title'>Deep Learning: Dasar &amp; Intuisi</p><p class='ds-card-sub'>2 pelajaran · progres tercatat</p></div>",
+      "css": ".ds-card{background:var(--surface,#fcfcfd);border:1px solid var(--border,#d6dade);border-radius:6px;box-shadow:0 1px 2px 0 rgb(15 23 42/.04);color:var(--content,#232946);font:400 14px/1.5 Archivo,system-ui,sans-serif;transition:all .2s}.ds-card-hover:hover{transform:translateY(-2px);border-color:var(--brand,#4f46e5);box-shadow:0 4px 12px -2px rgb(15 23 42/.08)}.ds-card-title{margin:0 0 4px;font-weight:700}.ds-card-sub{margin:0;font-size:13px;color:var(--muted,#575d7a)}"
+    },
+    {
+      "name": "Kop Card (signature)",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The letterhead device: an uppercase tracked eyebrow, title, then the .kop double rule — thick 3px ink over thin, opening every document, panel and menu.",
+      "html": "<div class='ds-card' style='max-width:360px'><div class='ds-card-kop ds-kop'><p class='ds-eyebrow'>Kartu Akses · AI Learning Community</p><p class='ds-kop-title'>Masuk</p></div><div style='padding:16px 20px 20px'><p class='ds-card-sub'>Lanjutkan perjalanan belajar Anda.</p></div></div>",
+      "css": ".ds-card{background:var(--surface,#fcfcfd);border:1px solid var(--border,#d6dade);border-radius:6px;box-shadow:0 1px 2px 0 rgb(15 23 42/.04);color:var(--content,#232946);font:400 14px/1.5 Archivo,system-ui,sans-serif}.ds-kop{border-bottom:3px solid var(--content,#232946);box-shadow:0 6px 0 -5px var(--content,#232946)}.ds-card-kop{padding:16px 20px 12px}.ds-eyebrow{margin:0;font:700 11px/1.3 Archivo,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--subtle,#6f7590)}.ds-kop-title{margin:4px 0 0;font:800 20px/1.2 Archivo,system-ui,sans-serif;letter-spacing:-.025em;color:var(--content,#232946)}.ds-card-sub{margin:0;font-size:13px;color:var(--muted,#575d7a)}"
+    },
+    {
+      "name": "Rubber Stamp",
+      "kind": "custom",
+      "refersTo": "badge-level",
+      "description": "Decorative verdict stamp: 2px border-current, extrabold uppercase, sitting at -2deg, thumping in with stamp-in. Red or green ink only.",
+      "html": "<span class='ds-stamp ds-stamp-red'>Gratis</span>",
+      "css": ".ds-stamp{display:inline-block;border:2px solid currentColor;border-radius:4px;padding:4px 12px;font:800 14px/1.4 Archivo,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;transform:rotate(-2deg);animation:ds-stamp-in .45s cubic-bezier(.16,1,.3,1) both}.ds-stamp-red{color:var(--danger,#b3372e)}.ds-stamp-green{color:var(--success,#1f7a4d)}@keyframes ds-stamp-in{0%{opacity:0;transform:scale(1.6) rotate(-10deg)}60%{opacity:1;transform:scale(.96) rotate(-2deg)}100%{opacity:1;transform:scale(1) rotate(-2deg)}}"
+    },
+    {
+      "name": "Badge (small stamp)",
+      "kind": "chip",
+      "refersTo": "badge-level",
+      "description": "State inked small: 1px border-current outline, 10.5px bold uppercase. Level verdicts sit on their soft grounds; identity badges are indigo outlines.",
+      "html": "<span class='ds-badge ds-badge-green'>Pemula</span> <span class='ds-badge ds-badge-indigo'>Kamu</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:4px;border:1px solid currentColor;border-radius:3px;padding:2px 6px;font:700 10.5px/1.1 Archivo,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}.ds-badge-green{background:var(--success-soft,#e2f2e8);color:var(--success,#1f7a4d)}.ds-badge-indigo{color:var(--brand,#4f46e5)}"
+    },
+    {
+      "name": "Ledger Table",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The register: uppercase 11px tracked headers, 1px row rules, hover well, tabular figures. The world's primary data surface.",
+      "html": "<table class='ds-ledger'><thead><tr><th>No.</th><th>Mata Pelajaran</th><th style='text-align:right'>Skor</th></tr></thead><tbody><tr><td class='ds-num'>01</td><td>Pengantar Machine Learning</td><td class='ds-num' style='text-align:right;font-weight:700;color:var(--brand,#4f46e5)'>92</td></tr><tr><td class='ds-num'>02</td><td>Python untuk Data Science</td><td class='ds-num' style='text-align:right'>88</td></tr></tbody></table>",
+      "css": ".ds-ledger{width:100%;border-collapse:collapse;font:400 14px/1.5 Archivo,system-ui,sans-serif;color:var(--content,#232946)}.ds-ledger th{border-bottom:1px solid var(--border,#d6dade);padding:10px 16px;text-align:left;font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#575d7a)}.ds-ledger td{border-bottom:1px solid var(--border,#d6dade);padding:12px 16px}.ds-ledger tbody tr{transition:background .15s}.ds-ledger tbody tr:hover{background:var(--surface-hover,#f1f4f6)}.ds-ledger tbody tr:last-child td{border-bottom:0}.ds-num{font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Pill Tabs",
+      "kind": "chip",
+      "refersTo": "pill-active",
+      "description": "Filter tabs as pen marks: idle pills are outlined sheets, the active pill is solid indigo (pinned #4f46e5 in dark mode).",
+      "html": "<div style='display:flex;gap:8px'><button class='ds-pill ds-pill-active'>Semua</button><button class='ds-pill ds-pill-idle'>Mingguan</button><button class='ds-pill ds-pill-idle'>Bulanan</button></div>",
+      "css": ".ds-pill{display:inline-flex;align-items:center;border-radius:4px;padding:6px 16px;font:500 14px/1.4 Archivo,system-ui,sans-serif;cursor:pointer;border:1px solid transparent;background:none;color:var(--muted,#575d7a);transition:background .15s,color .15s}.ds-pill-idle{border-color:var(--border,#d6dade);background:var(--surface,#fcfcfd)}.ds-pill-idle:hover{background:var(--surface-hover,#f1f4f6);color:var(--content,#232946)}.ds-pill-active{background:var(--brand,#4f46e5);color:#fff}.ds-pill:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg,#edf0f2),0 0 0 4px var(--brand-ring,rgb(79 70 229/.32))}"
+    },
+    {
+      "name": "Progress Bar",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Progress as filled ink: 8px track in sheet-hover, indigo fill with a slow sheen sweep while partially filled.",
+      "html": "<div style='max-width:280px'><div class='ds-progress'><div class='ds-progress-fill' style='width:64%'></div></div></div>",
+      "css": ".ds-progress{height:8px;border-radius:9999px;background:var(--surface-hover,#f1f4f6);overflow:hidden}.ds-progress-fill{position:relative;height:100%;border-radius:9999px;background:var(--brand,#4f46e5);overflow:hidden;transition:width .5s ease}.ds-progress-fill::after{content:'';position:absolute;inset:0;background-image:linear-gradient(90deg,transparent 25%,rgb(255 255 255/.25) 50%,transparent 75%);background-size:200% 100%;animation:ds-shimmer 1.6s linear infinite}@keyframes ds-shimmer{from{background-position:200% 0}to{background-position:-200% 0}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Rapor & Register — the living report card",
+    "overview": "The platform is a school document that never stops being filled in. Every screen is a sheet on a clerk's desk: cold HVS paper under blue-black ballpoint ink, opened by a double-rule letterhead (kop), advanced by ledger tables and ruled lines, and verdicted by rubber stamps. Progress is not decorated — it is recorded: numbers in tabular figures, dates in register format, state carried by stamp ink. Light mode is the original document: cool gray-blue paper (#edf0f2) with blue-black ink (#232946). Dark mode is \"salinan karbon\" — a blue carbon copy, not a dimmed gray, and an equal citizen by locked brand commitment: same layout, components, grain and stamps; only the ink chemistry changes. The one asymmetry is deliberate: filled actions keep solid #4f46e5 in dark mode so white button text holds >= 4.5:1 contrast, while the dark accent ink #8f97fa serves text and icons only. Brand indigo #4f46e5 is locked by PRODUCT.md and treated as the action ink everywhere. All copy is Indonesian. Icons are drawn SVG strokes (1.75px, round caps), never glyphs or emoji on rebuilt surfaces.",
+    "keyCharacteristics": [
+      "Document chrome, not app chrome: kop double rules, uppercase tracked eyebrows, 2px ink frames around form sheets.",
+      "Flat solid ink throughout — no gradient text, no gradient fills, no glass.",
+      "Stamp language: badges and stamps carry state as colored outlines/soft grounds (green / amber / red / indigo), slightly rotated when decorative.",
+      "Ledger tables with ruled-line rhythm and tabular figures for every machine number.",
+      "Drawn 1.75-stroke SVG icon set; monospace reserved for register entries (emails, code, IDs).",
+      "Dark mode as blue carbon copy with equal treatment; action fills stay solid #4f46e5.",
+      "Ambient paper grain over the whole page (5% light / 7% dark), plus browser-surface theming (selection, caret, scrollbar)."
+    ],
+    "rules": [
+      { "name": "The Locked Ink Rule", "body": "Indigo #4f46e5 is the brand and the only action color; it may be tuned around, never replaced. In dark mode it stays as the literal fill of every primary button and active pill; #8f97fa is its carbon-copy ghost for accents, not a substitute ink.", "section": "colors" },
+      { "name": "The Carbon Copy Rule", "body": "Dark mode is a duplicate of the document, not a theme variant to be designed separately. Both modes carry the same grain, ribbon, kop rules, stamps and layout; only the ink chemistry changes. A screen is not done until it reads correctly on both papers.", "section": "colors" },
+      { "name": "The Stamp-Ground Rule", "body": "Stamp inks (green/amber/red) appear as text over their -soft ground or as border-current outlines. They never become large fills — the one exception is the destructive button, which fills with red.", "section": "colors" },
+      { "name": "The Grain Rule", "body": "The fixed paper-grain overlay (body::after, 160px fractal noise, opacity 0.05 light / 0.07 dark, pointer-events none) is part of the paper. Selection is indigo with white text, the caret is indigo, and scrollbars are line-colored. Rebuilding a surface without these is off-world.", "section": "colors" },
+      { "name": "The Kop Rule", "body": "Every document — page, form sheet, panel, dropdown — opens with an uppercase tracked eyebrow line, then the title, then the kop double rule beneath. No heading floats without its letterhead.", "section": "typography" },
+      { "name": "The Register Hand Rule", "body": "All figures (scores, counts, dates, percentages, point totals) are set in tabular numerals; emails and code are set in Spline Sans Mono. Numbers are data entries, never display type — except the deliberately oversized leaderboard ranks.", "section": "typography" },
+      { "name": "The Paper Rule", "body": "Depth is drawn, not lit. Hierarchy comes from 1px rules, 2px ink frames, tonal paper steps (paper → sheet → raised) and the kop double rule. Shadows exist but are whisper-level, tinted slate-ink, and never the primary depth cue — a document lies on a desk, it does not float.", "section": "elevation" },
+      { "name": "The Flat Ink Rule", "body": "Surfaces are flat at rest with shadow-xs at most. Shadows answer state (hover, focus, menus) or mark the single hero sheet; a screen with multiple shadow-lg sheets is off-world.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do open every page, form, panel and menu with the kop double rule and an uppercase tracked eyebrow (11px, tracking 0.09–0.14em).",
+      "Do set all figures in tabular numerals (.tabular) and machine data (email, code, IDs) in Spline Sans Mono.",
+      "Do record state with badges/stamps: LEVEL_BADGE grounds (green/amber/red), indigo for identity, border-current outlines, stamp-in when a stamp appears.",
+      "Do keep the primary action as a solid #4f46e5 fill — and pin that fill in dark mode for contrast.",
+      "Do draw new icons as 1.75-stroke inline SVGs with round caps, colored via currentColor.",
+      "Do verify both papers: a surface ships only when light and dark (\"salinan karbon\") both read correctly, grain included.",
+      "Do keep all copy in Bahasa Indonesia."
+    ],
+    "donts": [
+      "Don't use gradient text or gradient fills — the world is solid ink. (The legacy .text-gradient shim now resolves to flat var(--brand); do not add new uses.)",
+      "Don't use emoji as icons on rebuilt surfaces; the drawn stroke set replaces them. (Dead emoji fields survive in src/lib/data/learning-paths.ts and src/lib/store/gamification.ts for inherited surfaces only — do not render them, do not copy the pattern.)",
+      "Don't round past 8px or build pill-shaped cards; corners are print-shop square.",
+      "Don't light depth with large or colored shadows; borders, tonal paper and the kop rule carry hierarchy.",
+      "Don't introduce a second accent hue; success/warning/danger are stamp inks for verdicts, not decoration, and only danger may fill a button.",
+      "Don't dim dark mode toward gray or design it as an afterthought — it is an equal carbon copy under the Carbon Copy Rule.",
+      "Don't replace the locked indigo #4f46e5 or let the dark accent #8f97fa fill buttons."
+    ]
+  }
+}

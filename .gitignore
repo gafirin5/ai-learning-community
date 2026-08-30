@@ -48,3 +48,11 @@ next-env.d.ts
 
 # playwright browsers (large, can be regenerated)
 node_modules/.cache/playwright*
+
+# impeccable working evidence (bukan sistem: bukti review & state build)
+.impeccable/review/
+.impeccable/build/
+.impeccable/mocks/
+.impeccable/server.log
+.impeccable/capture.mjs
+.impeccable/decision-payload.json

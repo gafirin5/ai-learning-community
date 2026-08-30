@@ -57,14 +57,27 @@ export default function RegisterPage() {
   return (
     <div className="container-app flex min-h-[70vh] items-center justify-center py-12">
       <div className="w-full max-w-md">
-        <div className="card p-8">
-          <h1 className="mb-1 text-2xl font-bold text-content">Daftar Akun</h1>
-          <p className="mb-6 text-sm text-muted">
-            Gratis. Setelah mendaftar Anda menjadi Learner dan bisa langsung belajar.
-          </p>
+        <div className="card relative p-8">
+          <span
+            className="stamp absolute -top-3 right-6 animate-stamp-in bg-surface text-success"
+            aria-hidden="true"
+          >
+            Gratis
+          </span>
+          <div className="kop mb-6 pb-4">
+            <p className="num-tabular text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+              Formulir Pendaftaran · No. 0001
+            </p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-content">
+              Daftar Akun
+            </h1>
+            <p className="mt-0.5 text-sm text-muted">
+              Setelah mendaftar Anda menjadi Learner dan bisa langsung belajar.
+            </p>
+          </div>
 
           {error && (
-            <div className="mb-4 rounded-lg border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-content">
+            <div className="mb-4 rounded-[4px] border border-danger/40 bg-danger-soft px-4 py-3 text-sm text-content">
               {error}
             </div>
           )}
