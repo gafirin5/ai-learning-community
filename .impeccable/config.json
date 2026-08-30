@@ -9,6 +9,30 @@
         "value": "11px",
         "createdAt": "2026-08-30T14:16:07.539Z",
         "reason": "Kop eyebrow (baris pengantar dokumen resmi) 11px tracking-0.14em dipakai konsisten sebagai perangkat dunia Rapor & Register di 8+ halaman; langkah ramp yang disanksikan"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5b52ee",
+        "createdAt": "2026-08-30T16:50:33.186Z",
+        "reason": "Warna hover aksi dark mode (.dark .btn-primary:hover), bagian sistem terkunci #4f46e5; terdokumentasi di commit design"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "10.5px",
+        "createdAt": "2026-08-30T16:50:33.600Z",
+        "reason": "Ukuran stamp-badge (.badge) — perangkat stempel dunia Rapor & Register"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "createdAt": "2026-08-30T16:50:34.111Z",
+        "reason": "Ukuran kode inline dalam prosa pelajaran (prose-lesson code)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "9999px",
+        "createdAt": "2026-08-30T16:52:19.115Z",
+        "reason": "Rounded-full khusus shimmer skeleton, scrollbar tipis, dan indikator kecil; elemen interaktif memakai skala 4-8px"
       }
     ]
   }

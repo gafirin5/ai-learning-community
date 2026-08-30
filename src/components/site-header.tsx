@@ -286,7 +286,7 @@ export function SiteHeader() {
 
       {/* Mobile nav drawer */}
       {navOpen && (
-        <nav className="border-t border-border md:hidden" aria-label="Navigasi mobile">
+        <nav className="animate-drawer-down border-t border-border md:hidden" aria-label="Navigasi mobile">
           <div className="container-app flex flex-col gap-1 py-3">
             <div className="mb-2 sm:hidden">
               <GlobalSearch />

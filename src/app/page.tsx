@@ -124,7 +124,7 @@ export default function Home() {
       {/* ================= HERO — satu lembar rapor terbuka ================= */}
       <section className="border-b border-border">
         <div className="container-app py-10 sm:py-14">
-          <div className="mx-auto max-w-4xl animate-fade-in rounded-[6px] border border-border bg-surface shadow-lg">
+          <div className="mx-auto max-w-4xl animate-slide-up rounded-[6px] border border-border bg-surface shadow-lg">
             <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-6 sm:px-10">
               <div>
                 <p className="text-xl font-extrabold uppercase leading-tight tracking-[0.09em] text-content sm:text-2xl">

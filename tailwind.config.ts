@@ -134,6 +134,16 @@ const config: Config = {
           "60%": { opacity: "1", transform: "scale(0.96) rotate(-2deg)" },
           "100%": { opacity: "1", transform: "scale(1) rotate(-2deg)" },
         },
+        "stamp-hit": {
+          "0%": { opacity: "0", transform: "scale(2.2) rotate(-14deg)" },
+          "55%": { opacity: "1", transform: "scale(0.92) rotate(-7deg)" },
+          "75%": { transform: "scale(1.05) rotate(-7deg)" },
+          "100%": { opacity: "1", transform: "scale(1) rotate(-7deg)" },
+        },
+        "drawer-down": {
+          from: { opacity: "0", transform: "translateY(-8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.2s ease-out",
@@ -150,6 +160,8 @@ const config: Config = {
         "pulse-glow": "pulse-glow 2.2s ease-in-out infinite",
         "message-in": "message-in 0.25s ease-out",
         "stamp-in": "stamp-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "stamp-hit": "stamp-hit 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) both",
+        "drawer-down": "drawer-down 0.2s ease-out",
       },
     },
   },
