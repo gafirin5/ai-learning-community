@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { categoryById, forumCategories, reportReasons } from "@/lib/data";
+import { formatTanggal } from "@/lib/format";
 import { VoteControl } from "@/components/vote-control";
 import { Tag } from "@/components/ui";
 import { Avatar } from "@/components/avatar";
@@ -311,7 +312,7 @@ export default function ForumThreadPage() {
               {node.hidden && (
                 <span className="badge bg-danger-soft text-danger">Disembunyikan</span>
               )}
-              <span>· {node.createdAt}</span>
+              <span className="num-tabular">· {formatTanggal(node.createdAt)}</span>
             </div>
             <div className="text-sm text-content">
               <MarkdownLite source={node.body} />
@@ -486,15 +487,26 @@ export default function ForumThreadPage() {
                   <span>{author?.name ?? "Pengguna"}</span>
                 </Link>
                 <span>·</span>
-                <span>{thread.createdAt}</span>
+                <span className="num-tabular">{formatTanggal(thread.createdAt)}</span>
                 <span>·</span>
-                <span>👁 {thread.viewCount ?? 0}</span>
+                <span className="flex items-center gap-1">
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                  <span className="num-tabular">{thread.viewCount ?? 0}</span>
+                </span>
                 {thread.pinned && (
-                  <span className="badge bg-warning-soft text-warning">📌 Disematkan</span>
+                  <span className="badge text-warning">
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3" aria-hidden="true">
+                      <path d="M12.6 2.4a1 1 0 00-1.4 0l-.7.7 4.4 4.4.7-.7a1 1 0 000-1.4l-3-3zM9.8 3.8L4 9.6V13l-1.5 1.5a1 1 0 001.4 1.4L5.4 14.4H9l5.8-5.8-5-4.8z" />
+                    </svg>
+                    Disematkan
+                  </span>
                 )}
                 {category && (
-                  <span className="badge bg-surface-hover text-muted">
-                    {category.emoji} {category.label}
+                  <span className="badge text-muted">
+                    {category.label}
                   </span>
                 )}
                 <span className="flex flex-wrap gap-1.5">

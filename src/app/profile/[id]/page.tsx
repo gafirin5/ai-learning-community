@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { useToast } from "@/components/toast";
 import { BADGE_DEFS } from "@/lib/store/gamification";
 import { interests as INTEREST_DEFS } from "@/lib/data/interests";
+import { formatTanggal } from "@/lib/format";
 import { updateProfileRemote } from "@/features/profile/api";
 
 export default function ProfilePage() {
@@ -155,44 +156,51 @@ export default function ProfilePage() {
     <div className="container-app py-10">
       <Breadcrumbs items={[{ label: "Profil", href: "#" }, { label: user.name }]} />
 
-      {/* Profile header */}
-      <div className="card mb-8 flex flex-col items-center gap-4 p-8 text-center sm:flex-row sm:text-left">
-        <Avatar
-          name={user.name}
-          src={user.avatarUrl || undefined}
-          size="lg"
-          className="!h-20 !w-20 !text-2xl"
-        />
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <h1 className="text-2xl font-bold text-content">{user.name}</h1>
-            <span className="badge bg-brand-soft text-brand">{user.role}</span>
-          </div>
-          <p className="mt-1 text-sm text-muted">{user.email}</p>
-          {user.bio ? <p className="mt-2 max-w-2xl text-sm text-content">{user.bio}</p> : null}
-          {user.expertise.length > 0 ? (
-            <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
-              {user.expertise.map((skill) => (
-                <span key={skill} className="badge bg-surface-hover text-content text-xs">
-                  {skill}
-                </span>
-              ))}
+      {/* Kartu pelajar */}
+      <div className="card mb-8 overflow-hidden">
+        <div className="kop flex flex-col items-center gap-4 px-8 pb-5 pt-6 text-center sm:flex-row sm:items-start sm:text-left">
+          <Avatar
+            name={user.name}
+            src={user.avatarUrl || undefined}
+            size="lg"
+            className="!h-20 !w-20 !text-2xl"
+          />
+          <div className="flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+              Kartu Pelajar · AI Learning Community
+            </p>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+              <h1 className="text-2xl font-extrabold tracking-tight text-content">{user.name}</h1>
+              <span className="badge text-brand">{user.role}</span>
             </div>
-          ) : null}
-          <p className="mt-2 text-xs text-subtle">Bergabung {user.joinedAt}</p>
-        </div>
-        <div className="flex gap-6 text-center">
-          <div>
-            <p className="text-xl font-bold text-content">{userProjects.length}</p>
-            <p className="text-xs text-muted">Proyek</p>
+            <p className="num-tabular mt-1 text-sm text-muted">
+              NIS {String(user.id).padStart(4, "0")} · {user.email}
+            </p>
+            {user.bio ? <p className="mt-2 max-w-2xl text-sm leading-6 text-content">{user.bio}</p> : null}
+            {user.expertise.length > 0 ? (
+              <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                {user.expertise.map((skill) => (
+                  <span key={skill} className="badge text-content text-xs">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <p className="num-tabular mt-2 text-xs text-subtle">Bergabung {user.joinedAt}</p>
           </div>
-          <div>
-            <p className="text-xl font-bold text-content">{userThreads.length}</p>
-            <p className="text-xs text-muted">Thread</p>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-content">{userComments.length}</p>
-            <p className="text-xs text-muted">Komentar</p>
+          <div className="flex gap-6 text-center">
+            <div>
+              <p className="num-tabular text-2xl font-extrabold text-content">{userProjects.length}</p>
+              <p className="text-xs text-muted">Proyek</p>
+            </div>
+            <div>
+              <p className="num-tabular text-2xl font-extrabold text-content">{userThreads.length}</p>
+              <p className="text-xs text-muted">Thread</p>
+            </div>
+            <div>
+              <p className="num-tabular text-2xl font-extrabold text-content">{userComments.length}</p>
+              <p className="text-xs text-muted">Komentar</p>
+            </div>
           </div>
         </div>
       </div>
@@ -200,28 +208,33 @@ export default function ProfilePage() {
       {/* Pencapaian — hanya untuk profil sendiri (poin/streak/badge milik session) */}
       {isCurrentUser ? (
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-bold text-content">Pencapaian</h2>
+          <h2 className="kop mb-4 pb-2 text-lg font-extrabold uppercase tracking-[0.09em] text-content">Pencapaian</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="card flex items-center gap-4 p-5">
-              <span aria-hidden="true" className="text-3xl">
-                ⭐
+              <span aria-hidden="true" className="text-brand">
+                <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.9 6.4 20l1.3-6.2L3 9.5l6.3-.7L12 3z" />
+                </svg>
               </span>
               <div>
-                <p className="text-3xl font-bold text-content">{state.points}</p>
+                <p className="num-tabular text-3xl font-extrabold text-content">{state.points}</p>
                 <p className="text-xs text-muted">Poin Belajar</p>
               </div>
             </div>
             <div className="card flex items-center gap-4 p-5">
-              <span aria-hidden="true" className="text-3xl">
-                🔥
+              <span aria-hidden="true" className="text-warning">
+                <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3c1 3-2.5 4.5-2.5 8a4.5 4.5 0 009 0c0-1.5-.5-2.8-1.5-4-.3 1.2-1 2-2 2.5.5-2.5-.5-5-3-6.5z" />
+                  <path d="M6.5 13a5.5 5.5 0 108.7 4.5" />
+                </svg>
               </span>
               <div>
-                <p className="text-3xl font-bold text-content">{state.activity.streak}</p>
+                <p className="num-tabular text-3xl font-extrabold text-content">{state.activity.streak}</p>
                 <p className="text-xs text-muted">Hari Streak</p>
               </div>
             </div>
             <div className="card p-5 sm:col-span-2 lg:col-span-1">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Lencana</p>
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.09em] text-muted">Stempel Prestasi</p>
               {earnedBadges.length === 0 ? (
                 <p className="text-sm text-muted">
                   Belum ada lencana — selesaikan pelajaran atau aktif di forum untuk meraihnya!
@@ -232,11 +245,8 @@ export default function ProfilePage() {
                     <span
                       key={b.id}
                       title={b.description}
-                      className="badge bg-brand-soft text-brand text-xs"
+                      className="badge text-brand text-xs"
                     >
-                      <span aria-hidden="true" className="mr-1">
-                        {b.emoji}
-                      </span>
                       {b.label}
                     </span>
                   ))}
@@ -271,15 +281,8 @@ export default function ProfilePage() {
                         type="button"
                         aria-pressed={active}
                         onClick={() => toggleInterest(i.id)}
-                        className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-                          active
-                            ? "border-brand bg-brand-soft text-brand"
-                            : "border-border bg-surface text-muted hover:bg-surface-hover hover:text-content"
-                        }`}
+                        className={`pill ${active ? "pill-active" : "pill-idle"}`}
                       >
-                        <span aria-hidden="true" className="mr-1">
-                          {i.emoji}
-                        </span>
                         {i.label}
                       </button>
                     );
@@ -301,10 +304,7 @@ export default function ProfilePage() {
             ) : (
               <div className="flex flex-wrap gap-2">
                 {selectedInterests.map((i) => (
-                  <span key={i.id} className="badge bg-brand-soft text-brand text-xs">
-                    <span aria-hidden="true" className="mr-1">
-                      {i.emoji}
-                    </span>
+                  <span key={i.id} className="badge text-brand text-xs">
                     {i.label}
                   </span>
                 ))}
@@ -408,9 +408,19 @@ export default function ProfilePage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Projects */}
         <section>
-          <h2 className="mb-4 text-lg font-bold text-content">Proyek</h2>
+          <h2 className="kop mb-4 pb-2 text-lg font-extrabold uppercase tracking-[0.09em] text-content">Proyek</h2>
           {userProjects.length === 0 ? (
-            <EmptyState icon="🚀" title="Belum ada proyek" description="Pengguna ini belum mempublikasikan proyek." />
+            <EmptyState
+              icon={
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 4c3 0 6 3 6 6-2.5.5-4.5 2.5-5 5-3 0-6-3-6-6 .5-2.5 2.5-4.5 5-5z" />
+                  <circle cx="14.5" cy="9.5" r="1.5" />
+                  <path d="M9 15l-4 5M11.5 12.5L5 19" />
+                </svg>
+              }
+              title="Belum ada proyek"
+              description="Pengguna ini belum mempublikasikan proyek."
+            />
           ) : (
             <div className="space-y-3">
               {userProjects.map((p) => (
@@ -431,9 +441,17 @@ export default function ProfilePage() {
 
         {/* Forum activity */}
         <section>
-          <h2 className="mb-4 text-lg font-bold text-content">Aktivitas Forum</h2>
+          <h2 className="kop mb-4 pb-2 text-lg font-extrabold uppercase tracking-[0.09em] text-content">Aktivitas Forum</h2>
           {userThreads.length === 0 ? (
-            <EmptyState icon="💬" title="Belum ada thread" description="Pengguna ini belum membuat thread." />
+            <EmptyState
+              icon={
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H9l-4 4v-4H6a2 2 0 01-2-2V6z" />
+                </svg>
+              }
+              title="Belum ada thread"
+              description="Pengguna ini belum membuat thread."
+            />
           ) : (
             <div className="space-y-3">
               {userThreads.map((t) => (
@@ -444,7 +462,7 @@ export default function ProfilePage() {
                     <span>·</span>
                     <span>{t.voteCount} vote</span>
                     <span>·</span>
-                    <span>{t.createdAt}</span>
+                    <span className="num-tabular">{formatTanggal(t.createdAt)}</span>
                   </div>
                 </Link>
               ))}
@@ -455,9 +473,18 @@ export default function ProfilePage() {
 
       {/* Komentar forum */}
       <section className="mt-6">
-        <h2 className="mb-4 text-lg font-bold text-content">Komentar Forum</h2>
+        <h2 className="kop mb-4 pb-2 text-lg font-extrabold uppercase tracking-[0.09em] text-content">Komentar Forum</h2>
         {userComments.length === 0 ? (
-          <EmptyState icon="🗨️" title="Belum ada komentar" description="Pengguna ini belum menulis komentar di forum." />
+          <EmptyState
+            icon={
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 10h8M8 14h5" />
+                <path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.2A8 8 0 1121 12z" />
+              </svg>
+            }
+            title="Belum ada komentar"
+            description="Pengguna ini belum menulis komentar di forum."
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {userComments.map((c) => {
@@ -472,7 +499,7 @@ export default function ProfilePage() {
                     {thread ? thread.title : `Thread #${c.threadId}`}
                   </h3>
                   <p className="mb-2 line-clamp-2 text-sm text-muted">{c.body}</p>
-                  <p className="text-xs text-subtle">{c.createdAt}</p>
+                  <p className="num-tabular text-xs text-subtle">{formatTanggal(c.createdAt)}</p>
                 </Link>
               );
             })}
