@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { LevelBadge, EmptyState } from "@/components/ui";
 import { ProgressBar } from "@/components/progress";
-import { Reveal } from "@/components/reveal";
 import type { Level } from "@/lib/types";
 
 const FILTERS: Array<{ value: "semua" | Level; label: string }> = [
@@ -44,20 +43,25 @@ export default function CoursesPage() {
 
   return (
     <div className="container-app py-10">
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-content">Kursus</h1>
-        <p className="text-muted">
-          Pilih learning path sesuai level keahlian Anda: Kursus → Pelajaran → Kuis.
+      <div className="kop mb-8 pb-4">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-subtle">
+          Buku Induk · AI Learning Community
+        </p>
+        <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-content">
+          Pilih mata pelajaranmu.
+        </h1>
+        <p className="mt-1 text-muted">
+          Kursus → Pelajaran → Kuis. Progres tiap pelajaran tercatat di rapormu.
         </p>
       </div>
 
       {state.interests.length > 0 && (
-        <div className="mb-6">
-          <h2 className="mb-2 font-semibold text-content">Untuk kamu</h2>
-          <p className="mb-3 text-sm text-muted">Berdasarkan minat: {state.interests.join(", ")}</p>
-        </div>
+        <p className="mb-4 text-sm text-muted">
+          Minatmu: <span className="font-semibold text-content">{state.interests.join(", ")}</span>
+        </p>
       )}
-      {/* Controls */}
+
+      {/* Kontrol */}
       <div className="mb-6 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {FILTERS.map((f) => (
@@ -87,7 +91,10 @@ export default function CoursesPage() {
         </div>
         <div className="relative">
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle" aria-hidden="true">
-            🔍
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="M16 16l4.5 4.5" />
+            </svg>
           </span>
           <input
             className="input pl-9"
@@ -100,7 +107,12 @@ export default function CoursesPage() {
 
       {filtered.length === 0 ? (
         <EmptyState
-          icon="📚"
+          icon={
+            <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+              <path d="M5 5h10l4 4v10a1 1 0 01-1 1H6a1 1 0 01-1-1V6a1 1 0 011-1z" />
+              <path d="M9 13h6M9 17h4" />
+            </svg>
+          }
           title="Tidak ada kursus yang cocok"
           description="Coba ubah kata kunci atau filter level."
           action={
@@ -116,41 +128,54 @@ export default function CoursesPage() {
           }
         />
       ) : (
-        <div key={`${filter}-${sort}-${query}`} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((course, i) => {
-            const pct = courseProgressPercent(course);
-            return (
-              <Reveal key={course.id} delay={Math.min(i, 5) * 60} className="h-full">
-                <Link
-                  href={`/courses/${course.slug}`}
-                  className="card card-hover group flex h-full flex-col p-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <LevelBadge level={course.level} />
-                    <span className="text-xs text-subtle">{course.lessonIds.length} pelajaran</span>
-                  </div>
-                  <h2 className="mb-2 text-lg font-semibold text-content group-hover:text-brand">
-                    {course.title}
-                  </h2>
-                  <p className="mb-4 flex-1 text-sm leading-6 text-muted">{course.description}</p>
-
-                  <div className="mb-2 flex justify-between text-xs text-muted">
-                    <span>Progress</span>
-                    <span>{pct}%</span>
-                  </div>
-                  <ProgressBar value={pct} />
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {course.topics.map((t) => (
-                      <span key={t} className="badge bg-surface-hover text-muted">
-                        #{t}
-                      </span>
-                    ))}
-                  </div>
-                </Link>
-              </Reveal>
-            );
-          })}
+        <div key={`${filter}-${sort}-${query}`} className="card overflow-hidden">
+          <table className="table-ledger">
+            <thead>
+              <tr>
+                <th className="w-12">No.</th>
+                <th>Mata Pelajaran</th>
+                <th className="hidden sm:table-cell">Level</th>
+                <th className="hidden text-right md:table-cell">Pelajaran</th>
+                <th className="w-32 sm:w-44">Progres</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((course, i) => {
+                const pct = courseProgressPercent(course);
+                return (
+                  <tr key={course.id}>
+                    <td className="num-tabular align-top text-subtle">{String(i + 1).padStart(2, "0")}</td>
+                    <td className="align-top">
+                      <Link
+                        href={`/courses/${course.slug}`}
+                        className="font-semibold text-content hover:text-brand hover:underline"
+                      >
+                        {course.title}
+                      </Link>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-muted">{course.description}</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {course.topics.slice(0, 3).map((t) => (
+                          <span key={t} className="badge text-muted">
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="hidden align-top sm:table-cell">
+                      <LevelBadge level={course.level} />
+                    </td>
+                    <td className="num-tabular hidden text-right align-top md:table-cell">
+                      {course.lessonIds.length}
+                    </td>
+                    <td className="align-top">
+                      <ProgressBar value={pct} />
+                      <span className="num-tabular mt-1 block text-xs text-subtle">{pct}%</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

@@ -34,11 +34,20 @@ export function LabPathsWidget() {
   return (
     <div className="card p-6">
       <h3 className="mb-3 flex items-center gap-2 font-semibold text-content">
-        🗺️ Jalur Belajar
+        <svg viewBox="0 0 24 24" className="h-4 w-4 text-brand" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 4L4 6v14l5-2 6 2 5-2V4l-5 2-6-2z" />
+          <path d="M9 4v14M15 6v14" />
+        </svg>
+        Jalur Belajar
         <span className="badge bg-brand-soft text-brand">Beta</span>
       </h3>
       <p className="text-sm font-medium text-content">
-        {chosen.path.emoji} {chosen.path.title}
+        <svg viewBox="0 0 24 24" className="mr-1.5 inline h-4 w-4 align-[-2px] text-brand" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" aria-hidden="true">
+          <circle cx="6" cy="18" r="2" />
+          <circle cx="18" cy="6" r="2" />
+          <path d="M8 17c4-1 3-5 6-7 1.5-1 3-1 3-1" />
+        </svg>
+        {chosen.path.title}
       </p>
       <div className="my-2 flex items-center gap-2">
         <ProgressBar value={chosen.pct} className="h-2 flex-1" />
@@ -89,7 +98,12 @@ export function LabFlashcardsWidget() {
   return (
     <div className="card p-6">
       <h3 className="mb-2 flex items-center gap-2 font-semibold text-content">
-        🃏 Kartu Hafalan
+        <svg viewBox="0 0 24 24" className="h-4 w-4 text-warning" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="3" y="5" width="13" height="16" rx="1.5" />
+          <path d="M7 5V4a2 2 0 012-2h11a1 1 0 011 1v14a1 1 0 01-1 1h-1" />
+          <path d="M7 9h5M7 13h5M7 17h3" />
+        </svg>
+        Kartu Hafalan
         <span className="badge bg-warning-soft text-warning">Eksperimental</span>
       </h3>
       <p className="text-sm text-muted">
@@ -98,11 +112,11 @@ export function LabFlashcardsWidget() {
           : due > 0
             ? (
               <>
-                📅 <span className="font-bold text-content">{due}</span> kartu menunggu diulas
+                <span className="font-bold text-content">{due}</span> kartu menunggu diulas
                 hari ini.
               </>
             )
-            : "Tidak ada kartu jatuh tempo. 🎉"}
+            : "Tidak ada kartu jatuh tempo."}
       </p>
       <Link href="/flashcards" className="btn-secondary mt-3 w-full justify-center text-sm">
         Berlatih sekarang
@@ -121,7 +135,7 @@ export function LabFlashcardsLessonLink({ lessonId }: { lessonId: number }) {
       href={`/flashcards?lesson=${lessonId}`}
       className="btn-secondary mt-4 w-full justify-center text-sm"
     >
-      🃏 Latih Kartu Hafalan pelajaran ini
+      Latih Kartu Hafalan pelajaran ini
     </Link>
   );
 }

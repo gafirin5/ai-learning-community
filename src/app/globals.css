@@ -3,60 +3,101 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------------------------
-   Semantic design tokens — light (default) & dark (.dark)
+   RAPOR & REGISTER — design tokens
+   Light = lembar HVS dingin + tinta pulpen biru-hitam.
+   Dark  = salinan karbon biru (kertas digandakan, tinta jadi terang).
+   Brand indigo #4f46e5 TERKUNCI (komitmen brand, lihat PRODUCT.md).
 --------------------------------------------------------------------------- */
 :root {
-  --bg: #f7f8fa;
-  --surface: #ffffff;
+  --bg: #edf0f2;
+  --bg-rgb: 237 240 242;
+  --surface: #fcfcfd;
+  --surface-rgb: 252 252 253;
   --surface-raised: #ffffff;
-  --surface-hover: #f1f3f7;
-  --border: #e4e7ee;
-  --content: #111827;
-  --muted: #4b5563;
-  --subtle: #6b7280;
+  --surface-raised-rgb: 255 255 255;
+  --surface-hover: #f1f4f6;
+  --surface-hover-rgb: 241 244 246;
+  --border: #d6dade;
+  --border-rgb: 214 218 222;
+  --content: #232946;
+  --content-rgb: 35 41 70;
+  --muted: #575d7a;
+  --muted-rgb: 87 93 122;
+  --subtle: #6f7590;
+  --subtle-rgb: 111 117 144;
 
   --brand: #4f46e5;
-  --brand-hover: #4338ca;
-  --brand-soft: #eef2ff;
-  --brand-ring: rgb(99 102 241 / 0.35);
+  --brand-rgb: 79 70 229;
+  --brand-hover: #3f38c9;
+  --brand-hover-rgb: 63 56 201;
+  --brand-soft: #e9eafb;
+  --brand-soft-rgb: 233 234 251;
+  --brand-ring: rgb(79 70 229 / 0.32);
 
-  --success: #059669;
-  --success-soft: #ecfdf5;
-  --warning: #b45309;
-  --warning-soft: #fffbeb;
-  --danger: #dc2626;
-  --danger-soft: #fef2f2;
+  --success: #1f7a4d;
+  --success-rgb: 31 122 77;
+  --success-soft: #e2f2e8;
+  --success-soft-rgb: 226 242 232;
+  --warning: #976a00;
+  --warning-rgb: 151 106 0;
+  --warning-soft: #f6efd9;
+  --warning-soft-rgb: 246 239 217;
+  --danger: #b3372e;
+  --danger-rgb: 179 55 46;
+  --danger-soft: #f8e7e4;
+  --danger-soft-rgb: 248 231 228;
 
-  --code-bg: #0f172a;
-  --code-fg: #e2e8f0;
+  --code-bg: #14172b;
+  --code-bg-rgb: 20 23 43;
+  --code-fg: #dfe3f5;
+  --code-fg-rgb: 223 227 245;
 
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0b0f1a;
-  --surface: #121826;
-  --surface-raised: #1a2234;
-  --surface-hover: #1e2839;
-  --border: #27324a;
-  --content: #e5e9f2;
-  --muted: #a7b0c2;
-  --subtle: #8490a6;
+  --bg: #121523;
+  --bg-rgb: 18 21 35;
+  --surface: #1a1e31;
+  --surface-rgb: 26 30 49;
+  --surface-raised: #20253c;
+  --surface-raised-rgb: 32 37 60;
+  --surface-hover: #232944;
+  --surface-hover-rgb: 35 41 68;
+  --border: #2f3554;
+  --border-rgb: 47 53 84;
+  --content: #e7e9f6;
+  --content-rgb: 231 233 246;
+  --muted: #a9aecb;
+  --muted-rgb: 169 174 203;
+  --subtle: #8f94b3;
+  --subtle-rgb: 143 148 179;
 
-  --brand: #818cf8;
-  --brand-hover: #a5b4fc;
-  --brand-soft: #1e1b4b;
-  --brand-ring: rgb(129 140 248 / 0.4);
+  --brand: #8f97fa;
+  --brand-rgb: 143 151 250;
+  --brand-hover: #aab1fc;
+  --brand-hover-rgb: 170 177 252;
+  --brand-soft: #262a55;
+  --brand-soft-rgb: 38 42 85;
+  --brand-ring: rgb(143 151 250 / 0.4);
 
-  --success: #34d399;
-  --success-soft: #0f2e22;
-  --warning: #fbbf24;
-  --warning-soft: #2a2110;
-  --danger: #f87171;
-  --danger-soft: #33191b;
+  --success: #66c795;
+  --success-rgb: 102 199 149;
+  --success-soft: #1b3226;
+  --success-soft-rgb: 27 50 38;
+  --warning: #d9ab46;
+  --warning-rgb: 217 171 70;
+  --warning-soft: #332a12;
+  --warning-soft-rgb: 51 42 18;
+  --danger: #e57063;
+  --danger-rgb: 229 112 99;
+  --danger-soft: #3d1e1a;
+  --danger-soft-rgb: 61 30 26;
 
-  --code-bg: #0a0f1c;
-  --code-fg: #e2e8f0;
+  --code-bg: #0e1120;
+  --code-bg-rgb: 14 17 32;
+  --code-fg: #dfe3f5;
+  --code-fg-rgb: 223 227 245;
 
   color-scheme: dark;
 }
@@ -67,16 +108,32 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: var(--border) transparent;
 }
 
 body {
   color: var(--content);
   background: var(--bg);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+  font-family: var(--font-sans, system-ui), -apple-system, "Segoe UI", Roboto,
     Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Serat kertas ambient — satu lapisan halus di atas seluruh halaman. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+.dark body::after {
+  opacity: 0.07;
 }
 
 ::selection {
@@ -84,21 +141,33 @@ body {
   color: #ffffff;
 }
 
+input,
+textarea,
+select {
+  caret-color: var(--brand);
+}
+
 a {
   transition: color 0.15s ease;
 }
 
-/* Serif — optional, for long-form article titles */
-.font-serif {
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-/* Mono — code */
+/* Mono — entri register, angka, kode */
 code,
 pre,
 .font-mono {
-  font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono",
+  font-family: var(--font-mono, ui-monospace), "SF Mono", "Cascadia Code",
     Consolas, monospace;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Entri register: angka mono lebar-tetap (tanggal, poin, persen). */
+.num-tabular {
+  font-family: var(--font-mono, ui-monospace), "SF Mono", "Cascadia Code",
+    Consolas, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 @layer components {
@@ -106,11 +175,12 @@ pre,
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
+  /* -- Aksi: blok tinta -------------------------------------------------- */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-ring focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-[5px] px-4 py-2.5 text-sm font-semibold tracking-[0.01em] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-ring focus-visible:ring-offset-bg disabled:cursor-not-allowed disabled:opacity-50 active:translate-y-px;
   }
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-hover hover:shadow-[0_10px_24px_-4px_var(--brand-ring)];
+    @apply btn bg-brand text-white hover:bg-brand-hover hover:shadow-[0_6px_16px_-6px_var(--brand-ring)];
   }
   .btn-secondary {
     @apply btn border border-border bg-surface text-content hover:bg-surface-hover;
@@ -125,59 +195,93 @@ pre,
     filter: brightness(0.92);
   }
 
+  /* Dark: isian aksi tetap indigo #4f46e5 agar kontras teks putih ≥ 4.5:1
+     (tinta --brand versi terang hanya untuk aksen teks, bukan isian). */
+  .dark .btn-primary {
+    background: #4f46e5;
+  }
+  .dark .btn-primary:hover {
+    background: #5b52ee;
+  }
+  .dark .pill-active {
+    background: #4f46e5;
+  }
+
+  /* -- Lembar formulir ---------------------------------------------------- */
   .card {
-    @apply rounded-xl border border-border bg-surface shadow-xs;
+    @apply rounded-[6px] border border-border bg-surface shadow-xs;
   }
 
   .card-hover {
-    @apply transition-all duration-200 hover:-translate-y-1 hover:border-brand hover:shadow-lg;
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-brand hover:shadow-md;
   }
 
-  .gradient-animate {
-    background-size: 200% 200%;
-    animation: gradient-x 6s ease infinite;
+  /* Kop surat: garis tebal + garis tipis di bawahnya, khas dokumen resmi. */
+  .kop {
+    border-bottom: 3px solid var(--content);
+    box-shadow: 0 6px 0 -5px var(--content);
   }
 
-  .text-gradient {
-    background-image: linear-gradient(100deg, var(--brand) 0%, #8b5cf6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-  }
-  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-    .text-gradient {
-      background-image: none;
-      color: var(--brand);
-      -webkit-text-fill-color: currentColor;
-    }
-  }
-
-  .input {
-    @apply w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-content placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring;
-  }
-
-  .label {
-    @apply mb-1.5 block text-sm font-medium text-content;
-  }
-
+  /* Stempel kecil (badge). Pemakaian: <span class="badge text-danger"> */
   .badge {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center gap-1 rounded-[3px] border border-current px-1.5 py-0.5 text-[10.5px] font-bold uppercase leading-4 tracking-[0.08em];
+  }
+
+  /* Stempel besar dekoratif — miring, seperti dicap di atas kertas. */
+  .stamp {
+    @apply inline-block rounded-[4px] border-2 border-current px-3 py-1 text-sm font-extrabold uppercase tracking-[0.14em] -rotate-2;
   }
 
   .pill {
-    @apply inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+    @apply inline-flex items-center rounded-[4px] px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
   }
   .pill-active {
     @apply bg-brand text-white;
   }
   .pill-idle {
-    @apply bg-surface text-muted ring-1 ring-border hover:bg-surface-hover hover:text-content;
+    @apply border border-border bg-surface text-muted hover:bg-surface-hover hover:text-content;
+  }
+
+  .input {
+    @apply w-full rounded-[4px] border border-border bg-surface px-3.5 py-2.5 text-sm text-content placeholder:text-subtle focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring;
+  }
+
+  /* Label formulir gaya buku induk: kapital kecil renggang. */
+  .label {
+    @apply mb-1.5 block text-xs font-bold uppercase tracking-[0.06em] text-muted;
+  }
+
+  /* -- Register / buku besar ---------------------------------------------- */
+  .table-ledger {
+    @apply w-full text-sm;
+  }
+  .table-ledger th {
+    @apply border-b border-border px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[0.09em] text-muted;
+  }
+  .table-ledger td {
+    @apply border-b border-border px-4 py-3 text-content;
+  }
+  .table-ledger tbody tr {
+    @apply transition-colors hover:bg-surface-hover;
+  }
+  .table-ledger tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* Garis buku besar samar — latar baris register. */
+  .ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(2rem - 1px),
+      var(--border) calc(2rem - 1px),
+      var(--border) 2rem
+    );
   }
 
   /* Skeleton shimmer */
   .skeleton {
-    @apply animate-shimmer rounded-md;
+    @apply animate-shimmer rounded-[4px];
     background-image: linear-gradient(
       90deg,
       var(--surface-hover) 25%,
@@ -187,7 +291,7 @@ pre,
     background-size: 200% 100%;
   }
 
-  /* Lesson article prose */
+  /* Pelajaran — prosa */
   .prose-lesson {
     @apply text-[15px] leading-7 text-muted;
   }
@@ -215,10 +319,10 @@ pre,
     @apply font-semibold text-content;
   }
   .prose-lesson code {
-    @apply rounded bg-surface-hover px-1.5 py-0.5 text-[13px] text-brand;
+    @apply rounded-[3px] bg-surface-hover px-1.5 py-0.5 font-mono text-[13px] text-brand;
   }
   .prose-lesson blockquote {
-    @apply my-4 border-l-4 border-brand/60 bg-brand-soft px-4 py-3 text-muted;
+    @apply my-4 rounded-[4px] border border-border bg-brand-soft px-4 py-3 text-muted;
   }
   .prose-lesson a {
     @apply text-brand underline underline-offset-2;
@@ -232,6 +336,14 @@ pre,
   .prose-lesson td {
     @apply border border-border px-3 py-2 text-muted;
   }
+}
+
+/* Kompatibilitas: gradien teks diganti tinta padat (dunia tanpa gradien). */
+.text-gradient {
+  color: var(--brand);
+}
+.gradient-animate {
+  background: none;
 }
 
 /* Scrollbar (chat panel, sidebars) */

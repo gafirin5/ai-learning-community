@@ -19,6 +19,61 @@ const NAV = [
   { href: "/leaderboard", label: "Peringkat" },
 ];
 
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z" />
+      <path d="M9.5 12l1.8 1.8 3.4-3.6" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 4h12v16l-6-4-6 4V4z" />
+    </svg>
+  );
+}
+
+function PlayIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M10.2 9.2l4.6 2.8-4.6 2.8V9.2z" />
+    </svg>
+  );
+}
+
+function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+      <rect x="4" y="4" width="7" height="7" rx="1" />
+      <rect x="13" y="4" width="7" height="7" rx="1" />
+      <rect x="4" y="13" width="7" height="7" rx="1" />
+      <rect x="13" y="13" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
+function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c1.2-3.2 3.9-5 7-5s5.8 1.8 7 5" />
+    </svg>
+  );
+}
+
+function LogoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 5H7a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 007 19h7" />
+      <path d="M10.5 12h8m0 0l-2.8-2.8M18.5 12l-2.8 2.8" />
+    </svg>
+  );
+}
+
 export function SiteHeader() {
   const { currentUser, logout, nextLesson } = useStore();
   const pathname = usePathname();
@@ -59,26 +114,31 @@ export function SiteHeader() {
       <Link
         key={item.href}
         href={item.href}
-        className={`relative whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring xl:px-3 ${
-          active ? "text-brand" : "text-muted hover:bg-surface-hover hover:text-content"
+        className={`relative whitespace-nowrap px-2.5 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring xl:px-3 ${
+          active ? "text-content" : "text-muted hover:text-content"
         }`}
       >
-        {active && (
-          <span className="absolute inset-0 -z-10 animate-pop-in rounded-lg bg-brand-soft" aria-hidden="true" />
-        )}
         {item.label}
+        <span
+          className={`absolute inset-x-2.5 bottom-0.5 h-[2.5px] rounded-full bg-brand transition-all duration-200 xl:inset-x-3 ${
+            active ? "opacity-100" : "opacity-0"
+          }`}
+          aria-hidden="true"
+        />
       </Link>
     );
   });
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur">
+      {/* Pita kop: tinta indigo membuka setiap dokumen. */}
+      <div className="h-1 w-full bg-brand" aria-hidden="true" />
       <div className="container-app flex h-16 items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {/* Mobile hamburger */}
           <button
             onClick={() => setNavOpen((v) => !v)}
-            className="btn-ghost h-9 w-9 rounded-lg !p-0 md:hidden"
+            className="btn-ghost h-9 w-9 !p-0 md:hidden"
             aria-label={navOpen ? "Tutup menu" : "Buka menu"}
             aria-expanded={navOpen}
           >
@@ -91,14 +151,18 @@ export function SiteHeader() {
             </svg>
           </button>
 
-          <Link href="/" className="group flex items-center gap-2 font-bold text-content">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-white transition-transform duration-200 group-hover:scale-110">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
-              </svg>
+          <Link href="/" className="group flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-brand text-sm font-extrabold tracking-tight text-white shadow-[inset_0_0_0_1.5px_rgb(255_255_255/0.35)] transition-transform duration-200 group-hover:-rotate-3">
+              AIC
             </span>
-            <span className="hidden xl:inline">AI Learning Community</span>
-            <span className="xl:hidden">AI LC</span>
+            <span className="hidden font-extrabold uppercase leading-tight tracking-[0.09em] text-content xl:inline">
+              AI Learning
+              <br />
+              Community
+            </span>
+            <span className="text-sm font-extrabold uppercase tracking-[0.09em] text-content xl:hidden">
+              AIC
+            </span>
           </Link>
 
           <nav className="ml-1 hidden items-center gap-0.5 md:flex xl:ml-2 xl:gap-1" aria-label="Navigasi utama">
@@ -106,16 +170,20 @@ export function SiteHeader() {
             {currentUser?.role === "admin" && (
               <Link
                 href="/admin"
-                className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring ${
+                className={`relative flex items-center gap-1.5 whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring ${
                   pathname.startsWith("/admin")
-                    ? "text-brand"
-                    : "text-muted hover:bg-surface-hover hover:text-content"
+                    ? "text-content"
+                    : "text-muted hover:text-content"
                 }`}
               >
-                {pathname.startsWith("/admin") && (
-                  <span className="absolute inset-0 -z-10 animate-pop-in rounded-lg bg-brand-soft" aria-hidden="true" />
-                )}
-                🛡️ Panel Admin
+                <ShieldIcon className="h-4 w-4" />
+                Panel Admin
+                <span
+                  className={`absolute inset-x-3 bottom-0.5 h-[2.5px] rounded-full bg-brand transition-opacity ${
+                    pathname.startsWith("/admin") ? "opacity-100" : "opacity-0"
+                  }`}
+                  aria-hidden="true"
+                />
               </Link>
             )}
           </nav>
@@ -126,8 +194,17 @@ export function SiteHeader() {
             <GlobalSearch />
           </div>
           {currentUser && (
-            <Link href="/bookmarks" className={"hidden sm:inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-medium "+(pathname.startsWith("/bookmarks") ? "text-brand" : "text-muted hover:bg-surface-hover hover:text-content")} aria-label="Tersimpan">
-              🔖<span className="hidden lg:inline">Tersimpan</span>
+            <Link
+              href="/bookmarks"
+              className={`hidden items-center gap-1.5 px-2 py-1.5 text-sm font-medium transition-colors sm:inline-flex ${
+                pathname.startsWith("/bookmarks")
+                  ? "text-content"
+                  : "text-muted hover:text-content"
+              }`}
+              aria-label="Tersimpan"
+            >
+              <BookmarkIcon className="h-4 w-4" />
+              <span className="hidden lg:inline">Tersimpan</span>
             </Link>
           )}
           {currentUser && <NotificationsBell />}
@@ -137,7 +214,7 @@ export function SiteHeader() {
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="flex items-center gap-2 rounded-lg border border-border px-2 py-1.5 text-sm font-medium text-content transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
+                className="flex items-center gap-2 rounded-[5px] border border-border bg-surface px-2 py-1.5 text-sm font-medium text-content transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ring"
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
               >
@@ -147,37 +224,37 @@ export function SiteHeader() {
               {menuOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-56 animate-pop-in overflow-hidden rounded-xl border border-border bg-surface-raised shadow-xl"
+                  className="absolute right-0 mt-2 w-56 animate-pop-in overflow-hidden rounded-[6px] border border-border bg-surface-raised shadow-xl"
                 >
-                  <div className="border-b border-border px-4 py-3">
+                  <div className="kop px-4 py-3">
                     <p className="truncate text-sm font-semibold text-content">{currentUser.name}</p>
-                    <p className="truncate text-xs text-muted">{currentUser.email}</p>
-                    <span className="badge mt-1.5 bg-brand-soft text-brand">{currentUser.role}</span>
+                    <p className="truncate font-mono text-xs text-muted">{currentUser.email}</p>
+                    <span className="badge mt-1.5 text-brand">{currentUser.role}</span>
                   </div>
                   <div className="p-1.5">
                     {resume && (
                       <Link
                         href={`/courses/${resume.courseSlug}/lessons/${resume.lessonId}`}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-content hover:bg-surface-hover"
+                        className="flex items-center gap-2.5 rounded-[4px] px-3 py-2 text-sm text-content hover:bg-surface-hover"
                         role="menuitem"
                       >
-                        <span aria-hidden="true">▶</span> Lanjut Belajar
+                        <PlayIcon className="h-4 w-4 text-brand" /> Lanjut Belajar
                       </Link>
                     )}
                     <Link
                       href="/dashboard"
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-content hover:bg-surface-hover"
+                      className="flex items-center gap-2.5 rounded-[4px] px-3 py-2 text-sm text-content hover:bg-surface-hover"
                       role="menuitem"
                     >
-                      <span aria-hidden="true">📊</span> Dashboard
+                      <GridIcon className="h-4 w-4 text-brand" /> Dashboard
                     </Link>
                     {currentUser && (
                       <Link
                         href={`/profile/${currentUser.id}`}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-content hover:bg-surface-hover"
+                        className="flex items-center gap-2.5 rounded-[4px] px-3 py-2 text-sm text-content hover:bg-surface-hover"
                         role="menuitem"
                       >
-                        <span aria-hidden="true">👤</span> Profil saya
+                        <UserIcon className="h-4 w-4 text-brand" /> Profil saya
                       </Link>
                     )}
                     <button
@@ -185,10 +262,10 @@ export function SiteHeader() {
                         void logout();
                         setMenuOpen(false);
                       }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-danger hover:bg-danger-soft"
+                      className="flex w-full items-center gap-2.5 rounded-[4px] px-3 py-2 text-left text-sm text-danger hover:bg-danger-soft"
                       role="menuitem"
                     >
-                      <span aria-hidden="true">⎋</span> Keluar
+                      <LogoutIcon className="h-4 w-4" /> Keluar
                     </button>
                   </div>
                 </div>
@@ -218,9 +295,9 @@ export function SiteHeader() {
             {currentUser?.role === "admin" && (
               <Link
                 href="/admin"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-content"
+                className="flex items-center gap-2 rounded-[4px] px-3 py-2 text-sm font-medium text-muted hover:bg-surface-hover hover:text-content"
               >
-                🛡️ Panel Admin
+                <ShieldIcon className="h-4 w-4" /> Panel Admin
               </Link>
             )}
             {!currentUser && (
