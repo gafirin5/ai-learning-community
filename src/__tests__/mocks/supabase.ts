@@ -1,34 +1,13 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+// Mock chain generik untuk Supabase client di test — tipe `any` disengaja di sini:
+// method chaining Supabase (.from().select().eq()...) sulit ditipekan presisi tanpa
+// duplikasi besar SDK asli, dan file ini hanya dipakai di test, tidak pernah di runtime app.
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Mock Supabase client untuk testing
  * Menghindari panggilan ke server Supabase real saat unit testing
  */
-
-interface MockSupabaseService {
-  from: ReturnType<typeof vi.fn>;
-  select: ReturnType<typeof vi.fn>;
-  insert: ReturnType<typeof vi.fn>;
-  update: ReturnType<typeof vi.fn>;
-  delete: ReturnType<typeof vi.fn>;
-  eq: ReturnType<typeof vi.fn>;
-  neq: ReturnType<typeof vi.fn>;
-  gt: ReturnType<typeof vi.fn>;
-  gte: ReturnType<typeof vi.fn>;
-  lt: ReturnType<typeof vi.fn>;
-  lte: ReturnType<typeof vi.fn>;
-  in: ReturnType<typeof vi.fn>;
-  like: ReturnType<typeof vi.fn>;
-  ilike: ReturnType<typeof vi.fn>;
-  contains: ReturnType<typeof vi.fn>;
-  match: ReturnType<typeof vi.fn>;
-  order: ReturnType<typeof vi.fn>;
-  limit: ReturnType<typeof vi.fn>;
-  range: ReturnType<typeof vi.fn>;
-  single: ReturnType<typeof vi.fn>;
-  maybeSingle: ReturnType<typeof vi.fn>;
-  throwOnError: ReturnType<typeof vi.fn>;
-}
 
 /**
  * Create fully mocked Supabase client with method chaining
@@ -68,7 +47,7 @@ export const createMockSupabase = (): SupabaseClient => {
         throwOnError: mockMethod(() => ({}) as any),
         then: mockMethod((resolve: any) => resolve(null)) as any,
       };
-    }) as T;
+    }) as unknown as T;
   };
 
   return {

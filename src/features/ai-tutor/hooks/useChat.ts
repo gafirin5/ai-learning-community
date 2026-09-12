@@ -4,9 +4,9 @@
  * Owner: Lane C (Component Agent)
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { getSupabase } from '@/lib/supabase';
-import type { ChatMessage, ChatPrompt, QuotaStatus } from '../types';
+import type { ChatMessage, QuotaStatus } from '../types';
 import { DAILY_QUOTA } from '../types';
 
 export function useChatHistory(userId: string, lessonId: number) {
@@ -69,6 +69,7 @@ export function useChatHistory(userId: string, lessonId: number) {
   
   return {
     messages,
+    loadHistory,
     addMessage: (message: Omit<ChatMessage, 'timestamp'>) => {
       const newMessage = { ...message, timestamp: new Date() };
       setMessages(prev => [...prev, newMessage]);
@@ -102,7 +103,6 @@ export function useQuota(userId: string) {
     
     if (data) {
       const usedTokens = data.used_tokens || 0;
-      const maxRequests = 20; // Approx 1 request per 1000 tokens
       const usedToday = Math.floor(usedTokens / 100);
       
       setQuota({
