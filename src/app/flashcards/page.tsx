@@ -183,6 +183,12 @@ export default function FlashcardsPage() {
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
           <span>📅 {dueToday} kartu jatuh tempo hari ini</span>
           <span>🗂 {flashcards.length} total kartu</span>
+          <Link
+            href="/flashcards/decks"
+            className="badge bg-brand-soft text-brand underline-offset-2 hover:underline"
+          >
+            🗂️ Deck buatanmu &amp; komunitas →
+          </Link>
           {lessonTitle && (
             <Link
               href="/flashcards"

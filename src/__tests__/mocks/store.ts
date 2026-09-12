@@ -14,20 +14,20 @@ export const mockStore: StoreContextValue = {
     seeded: false,
     progress: [],
     chat: [],
-    chatQuota: 20,
+    chatQuota: { date: '2024-01-01', used: 0 },
     threads: [],
     comments: [],
     savedThreadIds: [],
     reports: [],
     projects: [],
     projectComments: [],
-    votes: { threads: new Map(), comments: new Map(), projects: new Map() },
-    reactions: { threads: new Map(), comments: new Map() },
-    myReactions: { threads: new Map(), comments: new Map() },
+    votes: { threads: {}, comments: {}, projects: {} },
+    reactions: { threads: {}, comments: {} },
+    myReactions: { threads: {}, comments: {} },
     interests: [],
     recentlyViewed: [],
     bookmarks: [],
-    activity: { streak: 0, lastActiveDate: null },
+    activity: { streak: 0, lastActiveDate: '' },
     notifications: [],
     certificates: [],
     points: 0,
@@ -95,13 +95,19 @@ export const mockStore: StoreContextValue = {
   awardPoints: vi.fn(),
   issueCertificate: vi.fn(),
   syncBadges: vi.fn(),
+  createBooking: vi.fn(),
+  updateBookingStatus: vi.fn(),
+  submitReview: vi.fn(),
+  saveAvailability: vi.fn(),
+  refreshMentorSessions: vi.fn(),
+  getAvailableSlots: vi.fn(),
 };
 
 // Mock provider component
-import { RenderResult, render } from '@testing-library/react';
-import { ReactElement, ReactRendererOptions } from '@testing-library/react/lib/pure';
+import { RenderOptions, RenderResult, render } from '@testing-library/react';
+import { ReactElement } from 'react';
 
-interface CustomRenderOptions extends Omit<ReactRendererOptions, 'wrapper'> {
+interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   store?: StoreContextValue;
 }
 

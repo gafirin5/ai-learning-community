@@ -12,7 +12,7 @@ beforeAll(() => {
 // Mock console.error for cleaner test output (optional)
 const originalConsoleError = console.error;
 beforeEach(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     // Filter out React warnings that are expected in tests
     const message = args.join(' ');
     if (!message.includes('Warning:') || !message.includes('Strict mode')) {

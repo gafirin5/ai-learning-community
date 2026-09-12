@@ -115,6 +115,141 @@ export const flashcards: Flashcard[] = [
     front: "Apa ciri-ciri model yang overfitting?",
     back: "Loss training sangat rendah tapi loss validation/data baru jauh lebih tinggi — model menghafal, bukan menggeneralisasi.",
   },
+  // Lesson 8 — Apa itu NLP dan Kenapa Penting?
+  {
+    id: 16,
+    lessonId: 8,
+    courseId: 4,
+    front: "Apa itu Natural Language Processing (NLP)?",
+    back: "Cabang AI yang berfokus pada interaksi komputer dengan bahasa manusia — memahami dan menghasilkan teks/ucapan.",
+  },
+  {
+    id: 17,
+    lessonId: 8,
+    courseId: 4,
+    front: "Sebutkan dua pendekatan besar dalam NLP.",
+    back: "Pendekatan statistik klasik (TF-IDF, bag-of-words) dan pendekatan deep learning modern (word embedding, Transformer).",
+  },
+  // Lesson 9 — Tokenisasi, Stopword, dan Representasi Teks
+  {
+    id: 18,
+    lessonId: 9,
+    courseId: 4,
+    front: "Apa itu tokenisasi?",
+    back: "Proses memecah kalimat/teks menjadi unit lebih kecil, biasanya kata (token).",
+  },
+  {
+    id: 19,
+    lessonId: 9,
+    courseId: 4,
+    front: "Apa itu TF-IDF?",
+    back: "Term Frequency-Inverse Document Frequency — pembobotan kata yang menaikkan bobot kata khas suatu dokumen dan menurunkan bobot kata umum di banyak dokumen.",
+  },
+  // Lesson 10 — Klasifikasi Teks & Analisis Sentimen
+  {
+    id: 20,
+    lessonId: 10,
+    courseId: 4,
+    front: "Kenapa akurasi saja bisa menyesatkan untuk data sentimen yang tidak seimbang?",
+    back: "Model yang selalu menjawab kelas mayoritas bisa terlihat 'akurat' tapi tidak berguna; precision/recall/F1 lebih informatif per kelas.",
+  },
+  {
+    id: 21,
+    lessonId: 10,
+    courseId: 4,
+    front: "Apa kelemahan TF-IDF dibanding word embedding?",
+    back: "TF-IDF tidak memahami kemiripan makna antar kata (sinonim); word embedding memetakan kata bermakna serupa ke vektor yang berdekatan.",
+  },
+  // Lesson 11 — Bagaimana Komputer 'Melihat' Gambar?
+  {
+    id: 22,
+    lessonId: 11,
+    courseId: 5,
+    front: "Bagaimana gambar grayscale direpresentasikan di komputer?",
+    back: "Sebagai matriks 2D berisi nilai intensitas piksel dari 0 (hitam) sampai 255 (putih).",
+  },
+  {
+    id: 23,
+    lessonId: 11,
+    courseId: 5,
+    front: "Sebutkan tiga tantangan utama computer vision.",
+    back: "Variasi cahaya, variasi sudut/skala, dan oklusi (objek terhalang sebagian).",
+  },
+  // Lesson 12 — Convolutional Neural Network (CNN) — Intuisi
+  {
+    id: 24,
+    lessonId: 12,
+    courseId: 5,
+    front: "Apa fungsi filter/kernel pada operasi convolution?",
+    back: "Mendeteksi pola lokal (tepi, tekstur) dengan bergeser ke seluruh gambar dan menghasilkan feature map.",
+  },
+  {
+    id: 25,
+    lessonId: 12,
+    courseId: 5,
+    front: "Apa tujuan max pooling dalam CNN?",
+    back: "Mengecilkan ukuran feature map (downsampling), mengurangi parameter, dan membuat model tahan pergeseran kecil posisi objek.",
+  },
+  // Lesson 13 — Transfer Learning untuk Klasifikasi Gambar
+  {
+    id: 26,
+    lessonId: 13,
+    courseId: 5,
+    front: "Apa itu transfer learning?",
+    back: "Memanfaatkan model CNN yang sudah dilatih pada dataset besar (misalnya ImageNet) sebagai titik awal untuk tugas baru dengan dataset yang lebih kecil.",
+  },
+  {
+    id: 27,
+    lessonId: 13,
+    courseId: 5,
+    front: "Apa beda feature extraction dan fine-tuning penuh?",
+    back: "Feature extraction membekukan seluruh layer pretrained; fine-tuning penuh melatih ulang beberapa layer terakhir dengan learning rate kecil.",
+  },
+  // Lesson 14 — Dari Notebook ke Produksi: Kenapa MLOps?
+  {
+    id: 28,
+    lessonId: 14,
+    courseId: 6,
+    front: "Apa itu MLOps?",
+    back: "Praktik teknik untuk membuat siklus hidup model ML (data, training, deployment, monitoring) reproducible dan andal di produksi.",
+  },
+  {
+    id: 29,
+    lessonId: 14,
+    courseId: 6,
+    front: "Sebutkan satu perbedaan utama sistem ML vs software biasa.",
+    back: "Sistem ML perlu mem-versi-kan data dan model (bukan cuma kode), dan performanya bisa menurun akibat data drift walau kode tak berubah.",
+  },
+  // Lesson 15 — Membungkus Model Sebagai API
+  {
+    id: 30,
+    lessonId: 15,
+    courseId: 6,
+    front: "Apa fungsi joblib dalam deployment model?",
+    back: "Menyimpan (serialize) objek model Python terlatih ke file, agar tidak perlu dilatih ulang setiap kali aplikasi berjalan.",
+  },
+  {
+    id: 31,
+    lessonId: 15,
+    courseId: 6,
+    front: "Kenapa API prediksi sebaiknya bersifat stateless?",
+    back: "Agar mudah di-scale — banyak instance bisa dijalankan paralel tanpa perlu berbagi status antar-request.",
+  },
+  // Lesson 16 — Monitoring & Model Drift
+  {
+    id: 32,
+    lessonId: 16,
+    courseId: 6,
+    front: "Apa beda data drift dan concept drift?",
+    back: "Data drift = distribusi input berubah; concept drift = hubungan antara input dan output itu sendiri yang berubah.",
+  },
+  {
+    id: 33,
+    lessonId: 16,
+    courseId: 6,
+    front: "Sebutkan dua strategi retraining model di produksi.",
+    back: "Terjadwal (rutin per periode waktu) dan dipicu (otomatis saat metrik monitoring melewati ambang tertentu).",
+  },
 ];
 
 export function flashcardById(id: number): Flashcard | undefined {

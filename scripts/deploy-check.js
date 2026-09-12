@@ -5,8 +5,15 @@
  * Run this AFTER deploying to VPS to verify environment setup
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Semua path relatif ke root proyek (parent dari scripts/), bukan __dirname
+// script ini — sebelumnya bug ini membuat script selalu gagal menemukan file.
+const ROOT_DIR = path.join(__dirname, '..');
 
 console.log('🔧 AI Learning Community - Environment Setup Check\n');
 
@@ -28,9 +35,9 @@ function color(text, colorKey) {
 // Step 1: Check .env files
 console.log(color('\n✓ Checking environment configuration...', 'blue'));
 
-const envExamplePath = path.join(__dirname, '.env.example');
-const envLocalPath = path.join(__dirname, '.env.local');
-const envProductionPath = path.join(__dirname, '.env.production');
+const envExamplePath = path.join(ROOT_DIR, '.env.example');
+const envLocalPath = path.join(ROOT_DIR, '.env.local');
+const envProductionPath = path.join(ROOT_DIR, '.env.production');
 
 if (!fs.existsSync(envExamplePath)) {
   console.log(color('❌ ERROR: .env.example not found!', 'red'));
@@ -39,17 +46,26 @@ if (!fs.existsSync(envExamplePath)) {
 
 console.log(color('✅ .env.example exists', 'green'));
 
-// Check if .env.local exists with actual values
-let hasActualEnv = false;
+if (fs.existsSync(envLocalPath)) {
+  console.log(color('✅ .env.local exists (local dev env configured)', 'green'));
+} else {
+  console.log(color('⚠️  .env.local not found (ok if using deployment env vars)', 'yellow'));
+}
+
+if (fs.existsSync(envProductionPath)) {
+  console.log(color('✅ .env.production exists', 'green'));
+} else {
+  console.log(color('⚠️  .env.production not found (ok if using deployment env vars)', 'yellow'));
+}
+
 try {
   const envContent = fs.readFileSync(envExamplePath, 'utf8');
   if (envContent.includes('https://oucvzigtxfsdquzhrpwf.supabase.co')) {
-    hasActualEnv = true;
     console.log(color('✅ Supabase URL configured in .env.example', 'green'));
   } else {
     console.log(color('⚠️  WARNING: Supabase URL still using placeholder', 'yellow'));
   }
-} catch (error) {
+} catch {
   console.log(color('❌ ERROR reading .env.example', 'red'));
 }
 
@@ -64,7 +80,7 @@ const requiredFiles = [
 ];
 
 for (const file of requiredFiles) {
-  const filePath = path.join(__dirname, file);
+  const filePath = path.join(ROOT_DIR, file);
   if (fs.existsSync(filePath)) {
     console.log(color(`✅ ${file}`, 'green'));
   } else {
@@ -82,7 +98,7 @@ const migrationFiles = [
 ];
 
 for (const file of migrationFiles) {
-  const filePath = path.join(__dirname, file);
+  const filePath = path.join(ROOT_DIR, file);
   if (fs.existsSync(filePath)) {
     const content = fs.readFileSync(filePath, 'utf8');
     const hasCreateTable = content.includes('CREATE TABLE IF NOT EXISTS');
@@ -101,7 +117,7 @@ for (const file of migrationFiles) {
 // Step 4: Build preparation check
 console.log('\n' + color('Checking build configuration...', 'blue'));
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
 const hasTestScripts = packageJson.scripts?.test || packageJson.scripts?.build;
 
 if (hasTestScripts) {

@@ -203,6 +203,18 @@ export default function DashboardPage() {
           <LabFlashcardsWidget />
 
           <div className="card p-6">
+            <h3 className="kop mb-3 pb-2 font-bold uppercase tracking-[0.09em] text-content">
+              Playground Kode
+            </h3>
+            <p className="mb-4 text-sm text-muted">
+              Coba tulis dan jalankan kode JavaScript langsung di browser untuk latihan konsep AI/ML dasar.
+            </p>
+            <Link href="/playground" className="btn-secondary w-full justify-center">
+              Buka Playground
+            </Link>
+          </div>
+
+          <div className="card p-6">
             <h3 className="kop mb-4 pb-2 font-bold uppercase tracking-[0.09em] text-content">
               Aktivitas Forum Saya
             </h3>

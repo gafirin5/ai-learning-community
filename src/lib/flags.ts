@@ -32,7 +32,7 @@ export const LAB_FEATURES: LabFeatureMeta[] = [
     emoji: "🃏",
     title: "Kartu Hafalan (SRS)",
     description:
-      "Flashcard dengan algoritma spaced repetition SM-2 — ulangi materi tepat sebelum lupa. Fitur baru: aktifkan dari Lab lalu buka halaman Kartu Hafalan.",
+      "Flashcard dengan algoritma spaced repetition SM-2 — ulangi materi tepat sebelum lupa. Buat deckmu sendiri dan bagikan sebagai template untuk pembelajar lain di menu Deck.",
     status: "eksperimental",
     defaultOn: false,
     href: "/flashcards",

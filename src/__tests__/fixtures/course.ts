@@ -1,16 +1,18 @@
 import { Course, Lesson, Question, Quiz } from '@/lib/types/course';
 
 /**
- * Mock course data untuk testing
- * Berdasarkan struktur dari src/lib/data/courses.ts
+ * Mock course data untuk testing.
+ * Bentuknya disamakan persis dengan `src/lib/types/course.ts` — jangan
+ * tambah field yang tidak ada di tipe aslinya (fixture ini sebelumnya drift
+ * dari skema nyata dan tidak pernah type-check sampai audit 2026-09-10).
  */
 export const mockLesson: Lesson = {
   id: 1,
   courseId: 1,
   title: 'Pengantar Machine Learning',
+  summary: 'Pengenalan konsep dasar machine learning untuk pemula.',
+  content: '# Pengantar ML\n\nMachine learning adalah...',
   order: 1,
-  contentMarkdown: '# Pengantar ML\n\nMachine learning adalah...',
-  readingTimeMinutes: 15,
 };
 
 export const mockQuestion: Question = {
@@ -22,38 +24,31 @@ export const mockQuestion: Question = {
     'Model Learning',
     'Manual Learning',
   ],
-  correctOptionIndex: 0,
+  correctIndex: 0,
+  explanation: 'ML adalah singkatan dari Machine Learning.',
 };
 
 export const mockQuiz: Quiz = {
   id: 1,
   lessonId: 1,
+  title: 'Kuis Pengantar ML',
   questions: [mockQuestion],
-  passingScore: 70,
 };
 
 export const mockCourse: Course = {
   id: 1,
+  mentorId: 3,
   title: 'Kursus Dasar Machine Learning',
   slug: 'machine-learning-basics',
   description: 'Belajar machine learning dari nol hingga mahir',
-  image: '/images/ml-course.jpg',
-  level: 'pemula' as const, // pemula | menengah | lanjutan
-  durationWeeks: 8,
-  lessonsCount: 7,
+  level: 'pemula',
   topics: ['machine learning', 'python', 'data science'],
-  mentorId: 3,
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date('2024-01-15'),
-  lessons: [mockLesson],
-  quizzes: [mockQuiz],
-  quizByLesson: new Map([[1, mockQuiz]]),
-  lessonById: new Map([[1, mockLesson]]),
-  courseById: new Map([[1, mockCourse]]),
+  lessonIds: [mockLesson.id],
+  createdAt: '2024-01-01',
 };
 
 /**
- * Generate array of mock courses untuk testing lists
+ * Generate array of mock courses untuk testing lists.
  */
 export const generateMockCourses = (count: number): Course[] => {
   return Array.from({ length: count }, (_, i) => ({
@@ -61,6 +56,6 @@ export const generateMockCourses = (count: number): Course[] => {
     id: i + 1,
     title: `Kursus Machine Learning ${i + 1}`,
     slug: `ml-${i + 1}`,
-    createdAt: new Date(2024, 0, i + 1),
+    createdAt: new Date(2024, 0, i + 1).toISOString(),
   }));
 };
