@@ -40,6 +40,45 @@ export const projects: Project[] = [
     commentIds: [4, 5],
     likeCount: 26,
   },
+  {
+    id: 4,
+    userId: 5,
+    title: "Chatbot FAQ Berbahasa Indonesia dengan TF-IDF",
+    description:
+      "Chatbot sederhana yang mencocokkan pertanyaan pengguna dengan basis FAQ menggunakan cosine similarity atas representasi TF-IDF — tanpa API LLM eksternal.",
+    repoUrl: "https://github.com/example/chatbot-faq-tfidf",
+    tags: ["nlp", "chatbot", "python"],
+    level: "menengah",
+    createdAt: "2026-08-18",
+    commentIds: [6, 7],
+    likeCount: 14,
+  },
+  {
+    id: 5,
+    userId: 3,
+    title: "Deteksi Masker Wajah dengan Transfer Learning (MobileNetV2)",
+    description:
+      "Klasifikasi gambar wajah bermasker vs tidak bermasker menggunakan fine-tuning MobileNetV2, dilatih dengan dataset kecil (~800 gambar) dan augmentasi data.",
+    repoUrl: "https://github.com/example/deteksi-masker-mobilenet",
+    tags: ["computer-vision", "transfer-learning", "keras"],
+    level: "menengah",
+    createdAt: "2026-08-21",
+    commentIds: [8],
+    likeCount: 21,
+  },
+  {
+    id: 6,
+    userId: 4,
+    title: "Deploy Prediksi Harga Rumah sebagai REST API dengan FastAPI",
+    description:
+      "Membungkus model regresi harga rumah sebagai endpoint /predict dengan FastAPI + joblib, lengkap dengan validasi request memakai Pydantic dan contoh deployment container.",
+    repoUrl: "https://github.com/example/harga-rumah-fastapi",
+    tags: ["mlops", "fastapi", "deployment"],
+    level: "lanjutan",
+    createdAt: "2026-08-26",
+    commentIds: [9],
+    likeCount: 16,
+  },
 ];
 
 export const projectComments: ProjectComment[] = [
@@ -48,4 +87,8 @@ export const projectComments: ProjectComment[] = [
   { id: 3, projectId: 2, userId: 1, body: "Fitur lokasi bisa di-encode lebih baik, coba one-hot encoding per kecamatan.", createdAt: "2026-07-29" },
   { id: 4, projectId: 3, userId: 1, body: "Keren! Pertimbangkan data augmentation untuk memperkuat generalisasi.", createdAt: "2026-08-06" },
   { id: 5, projectId: 3, userId: 3, body: "Bolehkah saya lihat arsitektur CNN-nya? Sangat inspiratif.", createdAt: "2026-08-07" },
+  { id: 6, projectId: 4, userId: 2, body: "Ide bagus untuk FAQ internal! Coba tambahkan threshold similarity minimum supaya bot bisa bilang 'tidak tahu' alih-alih memaksa jawab dengan skor rendah.", createdAt: "2026-08-19" },
+  { id: 7, projectId: 4, userId: 1, body: "Rapi. Pertimbangkan juga stemming Bahasa Indonesia (mis. Sastrawi) supaya variasi imbuhan tidak mengurangi akurasi pencocokan.", createdAt: "2026-08-19" },
+  { id: 8, projectId: 5, userId: 1, body: "Akurasinya berapa di validation set? Kalau sempat, coba bandingkan freeze penuh vs fine-tune beberapa layer terakhir.", createdAt: "2026-08-22" },
+  { id: 9, projectId: 6, userId: 2, body: "Contoh validasi Pydantic-nya sangat membantu pemula. Mungkin tambahkan endpoint /health untuk cek kesiapan servis di deployment nyata.", createdAt: "2026-08-27" },
 ];

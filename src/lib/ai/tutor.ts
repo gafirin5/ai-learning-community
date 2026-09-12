@@ -101,5 +101,86 @@ function makeContextualAnswer(lessonId: number, message: string, lessonTitle: st
       return "Dropout mematikan sebagian neuron secara acak saat latih, memaksa jaringan lebih general dan mengurangi overfitting.";
     return "Cegah overfitting dengan: tambah data, regularisasi (L1/L2), dropout, early stopping, dan cross-validation.";
   }
+  if (lessonId === 8) {
+    if (lower.includes("ambigu"))
+      return "Ambiguitas kata (satu kata bisa punya beberapa makna, mis. 'bisa') adalah salah satu alasan bahasa manusia sulit diproses komputer secara langsung.";
+    if (lower.includes("contoh") || lower.includes("aplikasi") || lower.includes("penerapan"))
+      return "Contoh penerapan NLP: filter spam email, chatbot, analisis sentimen, penerjemah otomatis, dan ringkasan otomatis.";
+    if (lower.includes("transformer") || lower.includes("modern") || lower.includes("klasik"))
+      return "Pendekatan klasik (TF-IDF, bag-of-words) menghitung statistik kata; pendekatan modern (word embedding, Transformer seperti BERT) memahami makna dan konteks lebih dalam, tapi butuh data & komputasi lebih besar.";
+    return "NLP membuat komputer memahami dan menghasilkan bahasa manusia. Perhatikan kembali bagian *Kenapa Bahasa itu Sulit bagi Komputer* untuk intuisi dasarnya.";
+  }
+  if (lessonId === 9) {
+    if (lower.includes("token"))
+      return "Tokenisasi memecah kalimat menjadi unit lebih kecil (biasanya kata) — langkah pertama sebelum teks bisa diproses lebih lanjut.";
+    if (lower.includes("stopword") || lower.includes("stemming"))
+      return "Stopword removal membuang kata umum minim makna (mis. 'yang', 'di'); stemming/lemmatization menyederhanakan kata ke bentuk dasarnya.";
+    if (lower.includes("tf-idf") || lower.includes("tfidf") || lower.includes("bobot"))
+      return "TF-IDF memberi bobot lebih tinggi pada kata yang khas di satu dokumen, dan bobot lebih rendah pada kata yang umum di banyak dokumen.";
+    return "Representasi teks (Bag-of-Words, TF-IDF) mengubah kata menjadi angka agar bisa diproses model. Lihat kembali contoh TfidfVectorizer pada pelajaran.";
+  }
+  if (lessonId === 10) {
+    if (lower.includes("metrik") || lower.includes("precision") || lower.includes("recall") || lower.includes("f1"))
+      return "Untuk data sentimen yang tidak seimbang, precision, recall, dan F1-score lebih informatif daripada akurasi saja.";
+    if (lower.includes("embedding") || lower.includes("transformer") || lower.includes("bert"))
+      return "Word embedding dan model Transformer (mis. IndoBERT) memahami kemiripan makna antar kata — sesuatu yang tidak bisa dilakukan TF-IDF.";
+    if (lower.includes("pipeline") || lower.includes("logistic"))
+      return "Pipeline klasifikasi teks: teks mentah → preprocessing → TF-IDF → model (mis. Logistic Regression) → label sentimen.";
+    return "Klasifikasi teks mengikuti pola klasifikasi pada umumnya — hanya representasi awalnya (TF-IDF) yang khas untuk teks. Lihat kembali contoh pipeline pada pelajaran.";
+  }
+  if (lessonId === 11) {
+    if (lower.includes("piksel") || lower.includes("matriks"))
+      return "Gambar grayscale adalah matriks 2D berisi nilai intensitas piksel (0-255); gambar RGB punya tiga matriks seperti itu yang ditumpuk.";
+    if (lower.includes("rgb") || lower.includes("warna"))
+      return "Gambar berwarna (RGB) terdiri dari tiga channel — merah, hijau, biru — masing-masing sebagai matriks 2D terpisah.";
+    if (lower.includes("tantangan") || lower.includes("cahaya") || lower.includes("oklusi"))
+      return "Tantangan computer vision: variasi cahaya, sudut/skala, dan oklusi (objek terhalang sebagian) membuat objek yang sama bisa terlihat sangat berbeda.";
+    return "Bagi komputer, gambar hanyalah matriks angka (nilai piksel). Perhatikan kembali contoh matriks grayscale pada pelajaran.";
+  }
+  if (lessonId === 12) {
+    if (lower.includes("filter") || lower.includes("kernel") || lower.includes("convolution"))
+      return "Filter/kernel bergeser ke seluruh gambar dan mendeteksi pola lokal seperti tepi atau tekstur, menghasilkan feature map.";
+    if (lower.includes("pooling"))
+      return "Max pooling mengecilkan ukuran feature map dengan mengambil nilai maksimum per area kecil — mengurangi parameter dan menambah ketahanan terhadap pergeseran posisi objek.";
+    if (lower.includes("hierarki") || lower.includes("layer"))
+      return "CNN menyusun fitur secara hierarkis: layer awal menangkap tepi/warna sederhana, layer akhir mengenali objek utuh.";
+    return "CNN efektif untuk gambar karena berbagi parameter lewat filter dan menangkap pola lokal. Lihat kembali bagian *Operasi Convolution* pada pelajaran.";
+  }
+  if (lessonId === 13) {
+    if (lower.includes("imagenet") || lower.includes("pretrained"))
+      return "Model pretrained (ResNet, MobileNet, VGG) dilatih pada dataset besar seperti ImageNet, sehingga fitur dasarnya (tepi, tekstur) bisa dipakai ulang untuk tugas baru.";
+    if (lower.includes("freeze") || lower.includes("feature extraction") || lower.includes("fine-tun") || lower.includes("fine tun"))
+      return "Feature extraction membekukan seluruh layer pretrained dan hanya melatih layer klasifikasi baru; fine-tuning penuh melatih ulang beberapa layer terakhir dengan learning rate kecil.";
+    if (lower.includes("augmentasi"))
+      return "Augmentasi data (rotasi, flip, crop acak) membantu model tetap general walau dataset yang tersedia kecil.";
+    return "Transfer learning memakai model CNN yang sudah dilatih sebagai titik awal, sehingga tidak perlu dataset dan komputasi raksasa untuk melatih dari nol.";
+  }
+  if (lessonId === 14) {
+    if (lower.includes("notebook"))
+      return "Notebook bagus untuk eksplorasi, tapi sel yang dijalankan tidak berurutan dan tidak ada versi data/model membuatnya rawan sulit direproduksi di produksi.";
+    if (lower.includes("siklus") || lower.includes("lifecycle"))
+      return "Siklus hidup MLOps: kumpulkan & versi data → latih & evaluasi → kemas model → deploy → monitor → retrain saat performa turun.";
+    if (lower.includes("drift"))
+      return "Model bisa 'membusuk' (drift) seiring waktu walau kodenya tidak berubah — ini dibahas lebih detail di pelajaran Monitoring & Model Drift.";
+    return "MLOps adalah disiplin teknik agar siklus hidup model ML (data, training, deployment, monitoring) reproducible dan andal di produksi — bukan sekadar algoritma baru.";
+  }
+  if (lessonId === 15) {
+    if (lower.includes("joblib") || lower.includes("simpan") || lower.includes("pickle"))
+      return "joblib.dump() menyimpan objek model Python terlatih ke file (mis. model.pkl), sehingga tidak perlu dilatih ulang setiap aplikasi dijalankan.";
+    if (lower.includes("fastapi") || lower.includes("pydantic") || lower.includes("validasi"))
+      return "FastAPI membungkus model sebagai endpoint REST; Pydantic memvalidasi bentuk request secara otomatis sebelum data sampai ke model.";
+    if (lower.includes("stateless") || lower.includes("scale"))
+      return "API prediksi sebaiknya stateless (tidak menyimpan status antar-request) agar mudah di-scale dengan menjalankan banyak instance secara paralel.";
+    return "Membungkus model sebagai API mengubahnya dari file .pkl menjadi layanan yang bisa dipanggil aplikasi lain. Lihat kembali langkah-langkah pada pelajaran.";
+  }
+  if (lessonId === 16) {
+    if (lower.includes("data drift"))
+      return "Data drift adalah perubahan distribusi input dibandingkan data saat model dilatih — bisa dipantau lewat statistik fitur produksi vs data latih.";
+    if (lower.includes("concept drift"))
+      return "Concept drift terjadi ketika hubungan antara input dan output berubah, bukan sekadar distribusi inputnya.";
+    if (lower.includes("retrain"))
+      return "Dua strategi retraining: terjadwal (rutin per periode waktu) atau dipicu (otomatis saat metrik monitoring melewati ambang tertentu).";
+    return "Performa model bisa menurun akibat data drift atau concept drift meski kodenya tidak berubah — karena itu produksi butuh pemantauan berkelanjutan.";
+  }
   return `Pertanyaan Anda berkaitan dengan materi **${lessonTitle}**. Silakan perjelas bagian mana yang ingin didalami.`;
 }
