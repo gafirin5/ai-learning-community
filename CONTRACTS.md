@@ -360,6 +360,51 @@ export interface QuizQuestion {
 
 ---
 
+### **Catatan Pribadi & Deck Kartu Hafalan v1.0.0** ✅
+- **Status:** Published
+- **Feature:** Catatan Pribadi per Pelajaran + Deck Kartu Hafalan buatan pengguna (sharing/template)
+- **Date:** 2026-09-12
+- **Owner:** Lane C (Catatan) / Lab (Deck Kartu Hafalan)
+- **Details:** Dua fitur independen, sama-sama Supabase-backed dengan RLS owner-only:
+  - Catatan: 1 tabel (`lesson_notes`), tanpa RPC (upsert/delete langsung dari client).
+  - Deck: 2 tabel (`flashcard_decks`, `flashcard_cards`) + 3 RPC (`save_flashcard_deck`
+    ganti kartu atomik, `clone_flashcard_deck` duplikasi jadi template, `list_flashcard_decks`
+    scope mine/public). `flashcard_cards.id` sengaja dimulai dari 100000 supaya tidak
+    bertabrakan dengan id kartu bawaan statis (1-33) di `flashcard_progress.card_id`.
+- **Files:**
+  - `supabase/migrations/20260912000001_lesson_notes.sql`
+  - `supabase/migrations/20260912000002_flashcard_decks.sql`
+  - `src/lib/types/note.ts`, `src/lib/types/flashcard.ts` (tambahan `FlashcardDeck*`)
+  - `src/lib/store/notes-remote.ts`, `src/lib/store/flashcards-remote.ts` (tambahan fungsi deck)
+  - `src/components/lesson-notes.tsx`, `src/components/flashcard-deck-form.tsx`,
+    `src/components/flashcard-flip-card.tsx`
+  - `src/app/flashcards/decks/page.tsx` (galeri), `.../decks/new/page.tsx` (buat),
+    `.../decks/[id]/page.tsx` (detail/edit/belajar)
+
+```typescript
+// src/lib/types/flashcard.ts
+export interface FlashcardDeck {
+  id: number;
+  ownerId: string;
+  ownerName: string;
+  title: string;
+  description: string;
+  isPublic: boolean;
+  cardCount: number;
+  isMine: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+**Database Migration:** File sudah siap di `supabase/migrations/`, **belum di-push** ke
+project Supabase live — terapkan via SQL Editor atau `supabase db push` sebelum merge.
+
+**Breaking Changes:** None — penambahan murni; kartu hafalan bawaan (seed statis) dan
+halaman `/flashcards` yang sudah ada tidak diubah sama sekali.
+
+---
+
 ## 🚧 Under Development
 
 ### **Gamification Engine v0.9.0** ⏳

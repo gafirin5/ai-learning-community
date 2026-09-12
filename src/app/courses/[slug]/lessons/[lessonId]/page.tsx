@@ -10,6 +10,7 @@ import { AIChatPanel } from "@/features/ai-tutor/components";
 import { TableOfContents } from "@/components/table-of-contents";
 import { useToast } from "@/components/toast";
 import { LabFlashcardsLessonLink } from "@/components/lab/lab-widgets";
+import { LessonNotes } from "@/components/lesson-notes";
 
 export default function LessonPage() {
   const params = useParams<{ slug: string; lessonId: string }>();
@@ -121,6 +122,9 @@ export default function LessonPage() {
               <p className="mb-8 text-muted">{lesson.summary}</p>
 
               <MarkdownLite source={lesson.content} />
+
+              {/* Catatan pribadi — privat per user, autosave */}
+              <LessonNotes lessonId={lessonId} />
 
               {/* Quiz */}
               {quiz && (

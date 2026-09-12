@@ -10,4 +10,5 @@ export type { StoreState } from "./store";
 export type { AppNotification, NotificationType } from "./notification";
 export type { Badge, Certificate } from "./gamification";
 export type { LearningPath } from "./learning-path";
-export type { Flashcard, FlashcardProgress } from "./flashcard";
+export type { Flashcard, FlashcardProgress, FlashcardDeck, FlashcardDeckCard, FlashcardDeckDetail } from "./flashcard";
+export type { LessonNote } from "./note";
