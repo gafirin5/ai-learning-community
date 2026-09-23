@@ -34,7 +34,7 @@ didampingi forum, mentor sungguhan, dan showcase proyek pembelajar.
 - Self-paced web app; sesi belajar pendek (sela waktu) maupun panjang (mengerjakan kuis, membaca pelajaran).
 - Data nyata tersedia: kursus terstruktur, thread forum, proyek showcase, papan peringkat, kartu hafalan.
 - Backend Supabase (auth + data), dengan store frontend bertahan di localStorage.
-- Live di VPS; login demo: `budi@example.com` (learner), `sari@example.com` (mentor), `admin@example.com` (admin), password `password123`.
+- Live di VPS; login demo: `budi@example.com` (learner), `sari@example.com` (mentor), `admin@example.com` (admin).
 
 ## Capabilities and Constraints
 

@@ -49,17 +49,17 @@ curl -X POST 'https://oucvzigtxfsdquzhrpwf.supabase.co/auth/v1/admin/users' \
   -H 'apikey: <SECRET_KEY>' \
   -H 'Authorization: Bearer <SECRET_KEY>' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"rina@example.com","password":"password123","email_confirm":true,"user_metadata":{"name":"Rina Putri","role":"learner"}}'
+  -d '{"email":"rina@example.com","password":"<PASSWORD_BARU>","email_confirm":true,"user_metadata":{"name":"Rina Putri","role":"learner"}}'
 ```
 
 | Email | Password | Role |
 |-------|----------|------|
-| budi@example.com | password123 | mentor |
-| sari@example.com | password123 | mentor |
-| rina@example.com | password123 | learner |
-| andi@example.com | password123 | learner |
-| dewi@example.com | password123 | learner |
-| admin@example.com | password123 | admin |
+| budi@example.com | _(dihapus)_ | mentor |
+| sari@example.com | _(dihapus)_ | mentor |
+| rina@example.com | _(dihapus)_ | learner |
+| andi@example.com | _(dihapus)_ | learner |
+| dewi@example.com | _(dihapus)_ | learner |
+| admin@example.com | _(dihapus)_ | admin |
 
 Trigger `handle_new_user()` otomatis membuat `profiles` + `user_stats` saat user dibuat. Konten (courses/lessons/threads/projects) di-seed lewat PostgREST/API setelah user ada.
 
